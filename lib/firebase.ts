@@ -2,7 +2,7 @@
 // import { User } from "@/interfaces/user.interface";
 import { initializeApp } from "firebase/app";
 import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, DocumentData, getDoc, getDocs, getFirestore, query, QueryConstraint, QueryDocumentSnapshot, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { getStorage, uploadString,getDownloadURL,ref, deleteObject} from "firebase/storage";
 import toast from "react-hot-toast";
 
@@ -57,12 +57,14 @@ export const updateUser=async (user: { displayName?: string | null|undefined; ph
 
 // <=======gets dosc a  collection ======>
 
-  export const getCollection = async (collectionName: string,queryArray?:any[]) => {
-    const ref = await collection(db,collectionName);
-    const q = queryArray? query(ref,...queryArray):query(ref);
-    return (await getDocs(q)).docs.map((doc)=>({id: doc.id, ...doc.data()})) ;
-  };
-
+export const getCollection = async <T = DocumentData>(collectionName: string, queryArray?: QueryConstraint[]): Promise<T[]> => {
+  const ref = collection(db, collectionName);
+  const q = queryArray ? query(ref, ...queryArray) : query(ref);
+  return (await getDocs(q)).docs.map((doc: QueryDocumentSnapshot) => ({
+    id: doc.id,
+    ...doc.data()
+  } as T));
+};
 
 
 
@@ -117,11 +119,9 @@ export const updateUser=async (user: { displayName?: string | null|undefined; ph
       };
       
       //-------------actualizar imagen --------
-  export const updateDocument = async (path: string, data: any) => {
-
-    return updateDoc(doc(db,path),data)
-  };
-  
+      export const updateDocument = async <T>(path: string, data: Partial<T>): Promise<void> => {
+        await updateDoc(doc(db, path), data);
+      };
       //-------------eliminar document --------
   export const deleteDocument = async (path: string) => {
 

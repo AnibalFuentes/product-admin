@@ -63,8 +63,12 @@ export function ProfileDropdown () {
         setInLocalstorage('user', user)
       }
       toast.success('Perfil actualizado con éxito')
-    } catch (error: any) {
-      toast.error(error.message, { duration: 2500 })
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message, { duration: 2500 })
+      } else {
+        toast.error('Ocurrió un error desconocido', { duration: 2500 })
+      }
     } finally {
       setIsLoading(false)
     }
