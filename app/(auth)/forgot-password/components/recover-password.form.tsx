@@ -7,58 +7,63 @@ import Link from 'next/link'
 import * as z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { SignIn } from '@/lib/firebase'
-import { useState } from 'react'
-import { LoaderCircle, Eye, EyeOff } from 'lucide-react'
-import toast from 'react-hot-toast'
 
-const SignInForm = () => {
+import { useState } from 'react'
+import { LoaderCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { sendResetEmail } from '@/lib/firebase'
+import { useRouter } from 'next/navigation'
+
+const RecoverPasswordForm = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [showPassword, setShowPassword] = useState<boolean>(false) // Estado para mostrar u ocultar la contraseña
+  const router =useRouter()
 
   const formSchema = z.object({
     email: z
       .string()
-      .email('El formato del email no es válido. Ejemplo: user@mail.com')
-      .min(1, { message: 'Este campo es requerido' }),
-    password: z
-      .string()
-      .min(6, { message: 'La contraseña debe contener al menos 6 caracteres' })
+      .email('el formato del email no es valido. Ejemplo: user@mail.com')
+      .min(1, { message: 'Este campo es requerido' })
   })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: ''
+      email: ''
     }
   })
 
   const { register, handleSubmit, formState } = form
   const { errors } = formState
-
+  //   <===============SignIn===============>
   const onSubmit = async (user: z.infer<typeof formSchema>) => {
+    // console.log(user)
+
     setIsLoading(true)
     try {
-      await SignIn(user)
-      toast.success('Ingreso Exitoso', { duration: 2500 })
+      
+      // console.log(res)
+      await sendResetEmail(user.email);
+      toast.success('Envio Exitoso', { duration: 2500 })
+      router.back();
     } catch (error: unknown) {
+      // console.error(error)
       if (error instanceof Error) {
         toast.error(error.message, { duration: 2500 })
       } else {
         toast.error('Ocurrió un error desconocido', { duration: 2500 })
       }
+      //   // Show error message to user
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <>
+    <div className='md:border border-solid border-gray-300 rounded-xl p-10'>
       <div className='text-center'>
-        <h1 className='text-2xl font-semibold'>Inicio Sesión</h1>
+        <h1 className=' text-2xl font-semibold'>Restablecer Contraseña</h1>
         <p className='text-sm text-muted-foreground'>
-          Ingresa tu email y contraseña para acceder
+          Ingresa tu email para enviarte un link de restablecimiento
         </p>
       </div>
 
@@ -76,44 +81,25 @@ const SignInForm = () => {
             />
             <p className='form-error'>{errors.email?.message}</p>
           </div>
-          {/* <=================Password============> */}
-          <div className='mb-3 relative'>
-            <Label htmlFor='password'>Contraseña</Label>
-            <Input
-              {...register('password')}
-              id='password'
-              placeholder='******'
-              type={showPassword ? 'text' : 'password'} // Cambia el tipo según el estado `showPassword`
-            />
-            <button
-              type='button'
-              onClick={() => setShowPassword(!showPassword)}
-              className='absolute right-2 top-9'
-            >
-              {showPassword ? (
-                <EyeOff className='h-5 w-5' />
-              ) : (
-                <Eye className='h-5 w-5' />
-              )}
-            </button>
-            <p className='form-error'>{errors.password?.message}</p>
-          </div>
-          <Link
-            href='/forgot-password'
-            className='underline text-muted-foreground underline-offset-4 hover:text-primary mb-6 text-sm text-end'
-          >
-            ¿Olvidaste la contraseña?
-          </Link>
 
           {/* <=======================Submit===================> */}
           <Button type='submit' disabled={isLoading}>
+            {' '}
             {isLoading && <LoaderCircle className='mr-2 h-4 animate-spin' />}
-            {!isLoading && 'Iniciar Sesión'}
+            {!isLoading && 'Enviar Email'}
           </Button>
         </div>
       </form>
-    </>
+      <p className='text-center text-sm text-muted-foreground mt-3'>
+        <Link
+          href='/'
+          className='underline underline-offset-4 hover:text-primary'
+        >
+          {'<- Go Back'}
+        </Link>
+      </p>
+    </div>
   )
 }
 
-export default SignInForm
+export default RecoverPasswordForm

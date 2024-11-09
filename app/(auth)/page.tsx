@@ -3,9 +3,10 @@ import { Metadata } from 'next'
 import SignInForm from '@/app/(auth)/components/sign-in.form'
 
 export const metadata: Metadata = {
-  title: 'Sign In',
+  title: 'Iniciar Sesion - Product Admin',
   description: 'Sign in to your account'
 }
+
 
 const AuthPage = () => {
   return (

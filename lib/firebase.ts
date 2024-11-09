@@ -1,6 +1,10 @@
 // Import the functions you need from the SDKs you need
+// import { User } from "@/interfaces/user.interface";
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { getStorage, uploadString,getDownloadURL,ref} from "firebase/storage";
+
 
 
 const firebaseConfig = {
@@ -16,13 +20,72 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase
 export default app;
 export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage (app);
 
 //--------------auth funtion --------------------------------
 //--sign in --------------------------------
 export const SignIn=async (user:{email:string,password:string})=>{
-    return await signInWithEmailAndPassword(auth,user.email,user.password);
-    
+  return await signInWithEmailAndPassword(auth,user.email,user.password);
+  
 }
-export const SignUp=()=>{
+export const createUser=async(user:{email:string,password:string})=>{
+  
+  return await createUserWithEmailAndPassword(auth,user.email,user.password);
+  
+}
 
+export const updateUser=async (user: { displayName?: string | null|undefined; photoURL?: string | null|undefined })=>{
+  if(auth.currentUser)return updateProfile(auth.currentUser,user)
+    
+  }
+  
+  export const sendResetEmail=async(email:string)=>{
+    return await sendPasswordResetEmail(auth,email);
+    
+    
+  }
+  export const signOutAccount=()=>{
+    localStorage.removeItem('user');
+  return auth.signOut();
+  
+  
 }
+
+// <======================Database Functions =================>
+// <=======setear un docuemnto en una collection ======>
+
+  
+  export const getDocument = async (path: string) => {
+    return (await getDoc(doc(db,path))).data();
+    
+  };
+  
+  export const setDocument = async (path: string, data: any) => {
+    
+    data.createdAt = serverTimestamp() 
+    
+    return setDoc(doc(db,path),data)
+  };
+  
+  
+  //--------------storage funtion --------------------------------
+
+
+
+
+      //-------------subir imagen --------
+      export const uploadBase64 = async (path: string, base64: string) => {
+        return await uploadString(ref(storage,path),base64,'data_url').then(()=>{
+          return getDownloadURL(ref(storage,path));
+        });
+        
+      }
+      
+      //-------------actualizar imagen --------
+  export const updateDocument = async (path: string, data: any) => {
+
+    return updateDoc(doc(db,path),data)
+  };
+  
+
