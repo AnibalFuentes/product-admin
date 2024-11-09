@@ -2,7 +2,7 @@
 // import { User } from "@/interfaces/user.interface";
 import { initializeApp } from "firebase/app";
 import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { getStorage, uploadString,getDownloadURL,ref} from "firebase/storage";
 
 
@@ -53,6 +53,19 @@ export const updateUser=async (user: { displayName?: string | null|undefined; ph
 }
 
 // <======================Database Functions =================>
+
+// <=======gets dosc a  collection ======>
+
+  export const getCollection = async (collectionName: string,queryArray?:any[]) => {
+    const ref = await collection(db,collectionName);
+    const q = queryArray? query(ref,...queryArray):query(ref);
+    return (await getDocs(q)).docs.map((doc)=>({id: doc.id, ...doc.data()})) ;
+  };
+
+
+
+
+
 // <=======setear un docuemnto en una collection ======>
 
   
@@ -60,7 +73,16 @@ export const updateUser=async (user: { displayName?: string | null|undefined; ph
     return (await getDoc(doc(db,path))).data();
     
   };
+  //=========================ADD DOCUMENT========================
   
+  export const addDocument = async (path: string, data: any) => {
+    
+    data.createdAt = serverTimestamp() 
+    
+    return addDoc(collection(db,path),data)
+  };
+
+
   export const setDocument = async (path: string, data: any) => {
     
     data.createdAt = serverTimestamp() 
