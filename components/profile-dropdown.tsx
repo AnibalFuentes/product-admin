@@ -30,13 +30,13 @@ const capitalizeWords = (str: string) => {
   return str.replace(/\b\w/g, char => char.toUpperCase())
 }
 
-export function ProfileDropdown () {
+export function ProfileDropdown() {
   const user = useUser()
   const [image, setImage] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const chooseImage = async (event: any) => {
-    const file = event.target.files[0]
+  const chooseImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
 
     // Validar el tipo MIME del archivo
@@ -121,7 +121,7 @@ export function ProfileDropdown () {
                     className='hidden'
                     type='file'
                     accept='image/png, image/webp, image/jpeg'
-                    onChange={() => chooseImage(event)}
+                    onChange={chooseImage} // Pasa `chooseImage` directamente
                   />
                   <label htmlFor='files'>
                     <div className='w-[40px] cursor-pointer rounded-lg text-white h-[28px] bg-slate-950 hover:bg-slate-800 flex justify-center items-center'>
@@ -144,7 +144,7 @@ export function ProfileDropdown () {
 
           <DropdownMenuItem>
             <FileText className='mr-2 h-4 w-4' />
-            <span>Terminos y Condiciones</span>
+            <span>Términos y Condiciones</span>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <LifeBuoy className='mr-2 h-4 w-4' />
