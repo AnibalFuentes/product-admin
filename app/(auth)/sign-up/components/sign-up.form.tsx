@@ -65,10 +65,10 @@ const SignUpForm = () => {
       const res = await createUser(user)
       await updateUser({ displayName: user.name })
       user.uid = res.user.uid
-  
-      // Excluir confirmPassword antes de guardar en Firestore
-      const { confirmPassword, ...userData } = user // Esto elimina confirmPassword para no guardarlo
-  
+
+      // Eliminar confirmPassword antes de guardar en Firestore
+      const { confirmPassword, ...userData } = user // Esto elimina confirmPassword
+
       await createUserInDB(userData as User).then(async () => {
         await signOutAccount()
       })
@@ -82,7 +82,6 @@ const SignUpForm = () => {
       setIsLoading(false)
     }
   }
-  
 
   const createUserInDB = async (user: User) => {
     const path = `users/${user.uid}`
