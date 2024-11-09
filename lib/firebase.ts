@@ -2,8 +2,9 @@
 // import { User } from "@/interfaces/user.interface";
 import { initializeApp } from "firebase/app";
 import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
-import { getStorage, uploadString,getDownloadURL,ref} from "firebase/storage";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { getStorage, uploadString,getDownloadURL,ref, deleteObject} from "firebase/storage";
+import toast from "react-hot-toast";
 
 
 
@@ -103,11 +104,28 @@ export const updateUser=async (user: { displayName?: string | null|undefined; ph
         });
         
       }
+      //-------------emilinar imagen --------
+      export const deleteImage = async (path: string) => {
+        const imageRef = ref(storage, path);
+        try {
+          await deleteObject(imageRef);
+          
+        } catch (error) {
+          toast.error(`Error al eliminar la imagen de Storage: ${error}`, );
+          throw new Error("No se pudo eliminar la imagen");
+        }
+      };
       
       //-------------actualizar imagen --------
   export const updateDocument = async (path: string, data: any) => {
 
     return updateDoc(doc(db,path),data)
+  };
+  
+      //-------------eliminar document --------
+  export const deleteDocument = async (path: string) => {
+
+    return deleteDoc(doc(db,path))
   };
   
 

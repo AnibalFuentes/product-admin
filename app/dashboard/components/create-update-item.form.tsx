@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CirclePlus, LoaderCircle } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 
 import * as z from 'zod'
 import { useForm } from 'react-hook-form'
@@ -23,7 +23,7 @@ import { ItemImage } from '../../../interfaces/item-image.interface'
 import DragAndDropImage from '@/components/drag-and-drop-image'
 import { useUser } from '@/hooks/use-user'
 import { Category } from '@/interfaces/category.interface'
-import { Switch } from '@/components/ui/switch'
+// import { Switch } from '@/components/ui/switch'
 import { SwitchStateItem } from './switch-state-item'
 import Image from 'next/image'
 
@@ -42,6 +42,7 @@ export function CreateUpdateItem ({
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [image, setImage] = useState<string>('')
+  const [state, setState] = useState<boolean>(itemToUpdate?.state || false)
 
   const formSchema = z.object({
     image: z.object({
@@ -65,7 +66,7 @@ export function CreateUpdateItem ({
         }
   })
 
-  const { register, handleSubmit, formState, setValue, reset } = form
+  const { register, handleSubmit, formState, setValue } = form
   const { errors } = formState
 
   const handleImage = (url: string) => {
@@ -73,15 +74,18 @@ export function CreateUpdateItem ({
       ? itemToUpdate.image.path
       : `${user?.uid}/${Date.now()}`
     setValue('image', { url, path })
-
     setImage(url)
   }
 
   useEffect(() => {
-    if (itemToUpdate) setImage(itemToUpdate.image.url)
-  }, [open])
+    if (itemToUpdate) {
+      setImage(itemToUpdate.image.url)
+      setState(itemToUpdate.state)
+    }
+  }, [itemToUpdate])
 
   const onSubmit = (item: z.infer<typeof formSchema>) => {
+    item.state = state
     if (itemToUpdate) updateCategoryInDB(item)
     else createCategoryInDB(item)
   }
@@ -97,21 +101,27 @@ export function CreateUpdateItem ({
       item.image.url = imageUrl
       await addDocument(path, item)
       toast.success('Categoria Creada Exitosamente', { duration: 2500 })
-      // Cerrar el diálogo y reiniciar el formulario
       getItems()
-      setIsDialogOpen(false) // Cierra el diálogo
-      form.reset() // Limpia el formulario
-    } catch (error: any) {
-      toast.error(error.message, { duration: 2500 })
+      setIsDialogOpen(false)
+      form.reset()
+
+      setImage('')
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message, { duration: 2500 })
+      } else {
+        toast.error('Ocurrió un error desconocido', { duration: 2500 })
+      }
     } finally {
       setIsLoading(false)
     }
   }
+
   const updateCategoryInDB = async (item: Category) => {
     const path = `categorys/${itemToUpdate?.id}`
     setIsLoading(true)
     try {
-      if (itemToUpdate?.image.url != item.image.url) {
+      if (itemToUpdate?.image.url !== item.image.url) {
         const base64 = item.image.url
         const imagePath = item.image.path
         const imageUrl = await uploadBase64(imagePath, base64)
@@ -120,12 +130,17 @@ export function CreateUpdateItem ({
       }
       await updateDocument(path, item)
       toast.success('Categoria Actualizada Exitosamente', { duration: 2500 })
-      // Cerrar el diálogo y reiniciar el formulario
       getItems()
-      setIsDialogOpen(false) // Cierra el diálogo
-      form.reset() // Limpia el formulario
-    } catch (error: any) {
-      toast.error(error.message, { duration: 2500 })
+      setIsDialogOpen(false)
+      form.reset()
+
+      setImage('')
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message, { duration: 2500 })
+      } else {
+        toast.error('Ocurrió un error desconocido', { duration: 2500 })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -145,7 +160,6 @@ export function CreateUpdateItem ({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className='grid gap-2'>
-            {/*==================== Image========= */}
             <div className='mb-3'>
               <Label htmlFor='image'>Imagen</Label>
               {image ? (
@@ -171,7 +185,6 @@ export function CreateUpdateItem ({
                 <DragAndDropImage handleImage={handleImage} />
               )}
             </div>
-            {/* =====================Nombre===================== */}
             <div className='mb-3'>
               <Label htmlFor='name'>Nombre</Label>
               <Input
@@ -183,9 +196,11 @@ export function CreateUpdateItem ({
               />
               <p className='form-error'>{errors.name?.message}</p>
             </div>
-            <div className='mb-3'>
-              <SwitchStateItem />
-            </div>
+            {itemToUpdate && (
+              <div className='mb-3'>
+                <SwitchStateItem checked={state} onChange={setState} />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type='submit' disabled={isLoading}>

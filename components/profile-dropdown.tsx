@@ -31,7 +31,7 @@ const capitalizeWords = (str: string) => {
 }
 
 export function ProfileDropdown () {
-  let user = useUser()
+  const user = useUser()
   const [image, setImage] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
 

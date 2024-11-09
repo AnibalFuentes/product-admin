@@ -1,9 +1,8 @@
-import formatPrice from '@/actions/format-price'
+// import formatPrice from '@/actions/format-price'
 import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
@@ -11,79 +10,133 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { Category } from '@/interfaces/category.interface'
-import { Eye, EyeOff, SquarePen, TimerReset, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, LayoutList, SquarePen, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { CreateUpdateItem } from './create-update-item.form'
+import { ConfirmDeletion } from './confirm-deletion'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+
+interface TableViewProps {
+  items: Category[]
+  getItems: () => Promise<void>
+  deleteCategoryInDB: (item: Category) => Promise<void>
+  isLoading: boolean
+}
 
 export function TableView ({
   items,
-  getItems
-}: {
-  items: Category[]
-  getItems: () => Promise<void>
-}) {
+  getItems,
+  deleteCategoryInDB,
+  isLoading
+}: TableViewProps) {
   return (
-    <Table>
-      {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
-      <TableHeader>
-        <TableRow>
-          <TableHead className='w-[100px]'>Imagen</TableHead>
-          <TableHead>nombre</TableHead>
-          <TableHead>estado</TableHead>
-          <TableHead className='text-center w-[250px]'>Acciones</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {items.map(item => (
-          <TableRow key={item.id}>
-            <TableCell>
-              <Image
-                className='object-cover w-26 h-16 rounded-full'
-                alt={item.name}
-                src={item.image.url}
-                width={1000}
-                height={1000}
-              />
-            </TableCell>
-            <TableCell className='font-semibold w-[350px]'>
-              {' '}
-              {item.name}
-            </TableCell>
-            <TableCell>
-              {item.state ? (
-                <div>
-                  <Eye color='green' />
-                  <span>visible</span>
-                </div>
-              ) : (
-                <div>
-                  <EyeOff color='red' />
-                  <span>oculto</span>
-                </div>
-              )}
-            </TableCell>
-            <TableCell className='text-center'>
-              <CreateUpdateItem getItems={getItems} itemToUpdate={item}>
-                <Button>
-                  <SquarePen />
-                </Button>
-              </CreateUpdateItem>
-              <Button className='ml-4' variant={'destructive'}>
-                <Trash2 />
-              </Button>
-            </TableCell>
+    <div className='hidden md:block '>
+      <Table>
+        {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
+        <TableHeader>
+          <TableRow >
+            <TableHead className='text-center w-[100px]'>Imagen</TableHead>
+            <TableHead className='text-center' >nombre</TableHead>
+            <TableHead className='text-center'>estado</TableHead>
+            <TableHead className='text-center w-[250px]'>Acciones</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-      <TableFooter>
-        <TableRow>
-          <TableCell colSpan={3}>Total</TableCell>
-          <TableCell className='text-right'>
-            {/* {formatPrice(items.length)} */}
-            {items.length}
-          </TableCell>
-        </TableRow>
-      </TableFooter>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {!isLoading &&
+            items &&
+            items.map(item => (
+              <TableRow key={item.id}>
+                <TableCell>
+                  <Image
+                    className='object-cover w-16 h-16 rounded-full'
+                    alt={item.name}
+                    src={item.image.url}
+                    width={1000}
+                    height={1000}
+                  />
+                </TableCell>
+                <TableCell className='font-semibold  text-center '>{item.name}</TableCell>
+                <TableCell className='text-center'>
+                  {item.state ? (
+                    <div>
+                      <Badge
+                        className='border border-solid border-green-600 bg-green-50'
+                        variant={'outline'}
+                      >
+                        <Eye color='green' className='mr-1' /> visible
+                      </Badge>
+                    </div>
+                  ) : (
+                    <div>
+                      <Badge
+                        className='border border-solid border-red-600 bg-red-50'
+                        variant={'outline'}
+                      >
+                        <EyeOff color='red' className='mr-1' /> oculto
+                      </Badge>
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell className='text-center'>
+                  {/* ==========update========= */}
+                  <CreateUpdateItem getItems={getItems} itemToUpdate={item}>
+                    <Button>
+                      <SquarePen />
+                    </Button>
+                  </CreateUpdateItem>
+
+                  {/* ==========delete========= */}
+                  <ConfirmDeletion
+                    deleteCategoryInDB={deleteCategoryInDB}
+                    item={item}
+                  >
+                    <Button className='ml-4' variant={'destructive'}>
+                      <Trash2 />
+                    </Button>
+                  </ConfirmDeletion>
+                </TableCell>
+              </TableRow>
+            ))}
+          {isLoading &&
+            [1, 1, 1, 1, 1].map((e, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <Skeleton className='h-16 rounded-xl' />
+                </TableCell>
+
+                <TableCell>
+                  <Skeleton className='h-4 w-full ' />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className='h-4 w-full ' />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className='h-4 w-full ' />
+                </TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+        {!isLoading && items.length != 0 && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={3}>Total</TableCell>
+              <TableCell className='text-right'>
+                {/* {formatPrice(items.length)} */}
+                {items.length}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
+      {!isLoading && items.length === 0 && (
+        <div className='text-gray-200 my-20'>
+          <div className='flex justify-center'>
+            <LayoutList className='no-data' />
+          </div>
+          <h2 className='text-center'> No hay categorias disponibles</h2>
+        </div>
+      )}
+    </div>
   )
 }
