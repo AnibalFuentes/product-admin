@@ -18,7 +18,7 @@ const AuthPage = () => {
           <Logo />
           <div className='relative z-20 mt-auto'>
             <p className='text-lg'>
-              &ldquo;este administrador hace tu vida mas facil&ldquo;
+            {"este administrador hace tu vida mas facil"}
             </p>
             <footer className='text-sm'> DevAni</footer>
           </div>
