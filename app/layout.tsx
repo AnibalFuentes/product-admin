@@ -5,6 +5,9 @@ import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import { useUser } from '@/hooks/use-user'
 import { redirect, usePathname } from 'next/navigation'
+import { ThemeProvider } from 'next-themes'
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/app-sidebar'
 // import { Metadata } from 'next'
 
 // const geistSans = localFont({
@@ -17,8 +20,6 @@ import { redirect, usePathname } from 'next/navigation'
 //   variable: "--font-geist-mono",
 //   weight: "100 900",
 // });
-
-
 
 export default function RootLayout ({
   children
@@ -37,7 +38,14 @@ export default function RootLayout ({
       <body
       // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='ligth'
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

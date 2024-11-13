@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const Dashboard = () => {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <div className='md:border border-solid border-gray-300 rounded-3xl p-3 md:m-6 lg:mx-36 '>
         <Items />
       </div>

@@ -61,6 +61,7 @@ const Items = () => {
 
   useEffect(() => {
     if (user) getItems()
+    
   }, [user])
 
   return (

@@ -25,6 +25,7 @@ import {
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
+import { ModeToggle } from './toggle-mode'
 
 const capitalizeWords = (str: string) => {
   return str.replace(/\b\w/g, char => char.toUpperCase())
@@ -96,6 +97,7 @@ export function ProfileDropdown () {
             <CircleUserRound className='m-auto w-6 h-6' />
           )}
         </Button>
+        
       </DropdownMenuTrigger>
       <DropdownMenuContent className='w-56'>
         <DropdownMenuLabel className='text-center'>
