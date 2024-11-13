@@ -65,13 +65,13 @@ const Items = () => {
   }, [user])
 
   return (
-    <div className='w-full'>
-      <div className='flex justify-between m-4 mb-8'>
-        <h1 className='text-2xl ml-1'>Mis Categorias</h1>
+    <div className="w-full"> {/* Asegúrate de que tenga w-full */}
+      <div className="flex justify-between m-4 mb-8">
+        <h1 className="text-2xl ml-1">Usuarios</h1>
         <CreateUpdateItem getItems={getItems}>
-          <Button className='px-6'>
+          <Button className="px-6">
             Crear
-            <CirclePlus className='ml-2 w-[20px]' />
+            <CirclePlus className="ml-2 w-[20px]" />
           </Button>
         </CreateUpdateItem>
       </div>

@@ -1,6 +1,6 @@
 import Navbar from '@/components/navbar'
 import { Metadata } from 'next'
-import Items from './components/items'
+import Items from './users/components/items'
 
 export const metadata: Metadata = {
   title: 'Dashboard - Product Admin',
@@ -10,12 +10,15 @@ export const metadata: Metadata = {
 const Dashboard = () => {
   return (
     <>
-      {/* <Navbar /> */}
-      <div className='md:border border-solid border-gray-300 rounded-3xl p-3 md:m-6 lg:mx-36 '>
-        <Items />
+      <div className="border border-solid border-gray-300 rounded-3xl p-3 m-0 w-full"> {/* Sin márgenes adicionales */}
+        Dasboard
       </div>
     </>
   )
 }
 
 export default Dashboard
+
+
+
+

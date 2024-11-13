@@ -23,6 +23,8 @@ export default app;
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage (app);
+// En tu servidor o Firebase Cloud Function
+
 
 //--------------auth funtion --------------------------------
 //--sign in --------------------------------
@@ -48,10 +50,15 @@ export const updateUser=async (user: { displayName?: string | null|undefined; ph
   }
   export const signOutAccount=()=>{
     localStorage.removeItem('user');
+    localStorage.removeItem('users');
   return auth.signOut();
   
   
 }
+
+
+
+
 
 // <======================Database Functions =================>
 
