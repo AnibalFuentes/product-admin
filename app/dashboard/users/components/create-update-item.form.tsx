@@ -8,12 +8,21 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LoaderCircle } from 'lucide-react'
 import Image from 'next/image'
 import * as z from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -52,12 +61,11 @@ export function CreateUpdateItem({
     name: z.string().min(2, { message: 'Este campo es requerido, al menos 2 caracteres' }),
     email: z.string().email('El formato del email no es válido. Ejemplo: user@mail.com'),
     password: z.string().min(6, { message: 'La contraseña debe contener al menos 6 caracteres' }).optional(),
-    phone: z.string().min(10, { message: 'Debe ingresar un número de teléfono válido' }), // Validación del teléfono
-    unit: z.enum(['UI', 'UPGD'], { message: 'Seleccione una unidad válida' }), // Validación del campo unidad
-    role: z.enum(['ADMIN', 'OPERARIO', 'USUARIO'], { message: 'Seleccione un rol válido' }), // Validación del campo rol
+    phone: z.string().min(10, { message: 'Debe ingresar un número de teléfono válido' }),
+    unit: z.enum(['UI', 'UPGD'], { message: 'Seleccione una unidad válida' }),
+    role: z.enum(['ADMIN', 'OPERARIO', 'USUARIO'], { message: 'Seleccione un rol válido' }),
     state: z.boolean()
   });
-  
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,11 +75,12 @@ export function CreateUpdateItem({
       name: '',
       email: '',
       password: '',
+      phone: '',
       state: true
     }
   })
 
-  const { register, handleSubmit, formState, setValue } = form
+  const { register, handleSubmit, formState, setValue, control } = form
   const { errors } = formState
 
   const handleImage = (url: string) => {
@@ -87,30 +96,25 @@ export function CreateUpdateItem({
     }
   }, [itemToUpdate])
 
-  
-
   const updateCategoryInDB = async (item: User) => {
     const path = `usuarios/users`
     setIsLoading(true)
     try {
-      // Si la imagen ha cambiado, sube la nueva imagen
       if (itemToUpdate?.image.url !== item.image.url) {
         const base64 = item.image.url
         const imagePath = item.image.path || `${itemToUpdate?.uid}/${Date.now()}`
         const imageUrl = await uploadBase64(imagePath, base64)
         item.image.url = imageUrl
       }
-  
-      // Remover el item original
+
       await updateDocument(path, {
-        users: arrayRemove(itemToUpdate) // Elimina el elemento existente
+        users: arrayRemove(itemToUpdate)
       })
-  
-      // Agregar el item actualizado
+
       await updateDocument(path, {
-        users: arrayUnion(item) // Agrega el nuevo elemento
+        users: arrayUnion(item)
       })
-  
+
       toast.success('Usuario Actualizado Exitosamente', { duration: 2500 })
       getItems()
       setIsDialogOpen(false)
@@ -126,63 +130,54 @@ export function CreateUpdateItem({
       setIsLoading(false)
     }
   }
-  
+
   const onSubmit = (item: z.infer<typeof formSchema>) => {
     item.state = state;
-  
+
     if (itemToUpdate) {
-      // Al actualizar, omitimos el campo password al enviar, ya que no está siendo usado
       const { password, ...itemWithoutPassword } = item;
       updateCategoryInDB(itemWithoutPassword as User);
     } else {
-      // Al crear, incluimos la contraseña
       createCategoryInDB(item as User);
     }
   };
-  
+
   const createCategoryInDB = async (item: User) => {
-    const path = `usuarios/users`;
-    setIsLoading(true);
+    const path = `usuarios/users`
+    setIsLoading(true)
     try {
-      // Crear usuario en Firebase Auth utilizando la función createUser
       const userCredential = await createUser({
         email: item.email,
-        password: item.password!, // Aquí debe estar la contraseña
-      });
-  
-      const userId = userCredential.user.uid; // Obtener el UID del usuario creado
-  
-      // Subir la imagen si es necesario
-      const base64 = item.image.url;
-      const imagePath = item.image.path || `${userId}/${Date.now()}`;
-      const imageUrl = await uploadBase64(imagePath, base64);
-  
-      // Actualizar la URL de la imagen y agregar el UID al objeto item, eliminando la contraseña
-      item.image.url = imageUrl;
-      item.uid = userId;
-      delete item.password; // Eliminar la contraseña para evitar enviarla a Firestore
-  
-      // Agregar el usuario al array users en Firestore
+        password: item.password!
+      })
+      const userId = userCredential.user.uid
+      const base64 = item.image.url
+      const imagePath = item.image.path || `${userId}/${Date.now()}`
+      const imageUrl = await uploadBase64(imagePath, base64)
+
+      item.image.url = imageUrl
+      item.uid = userId
+      delete item.password
+
       await updateDocument(path, {
-        users: arrayUnion(item), // Usa arrayUnion para agregar al array
-      });
-  
-      toast.success("Usuario Creado Exitosamente", { duration: 2500 });
-      getItems();
-      setIsDialogOpen(false);
-      form.reset();
-      setImage("");
+        users: arrayUnion(item)
+      })
+
+      toast.success("Usuario Creado Exitosamente", { duration: 2500 })
+      getItems()
+      setIsDialogOpen(false)
+      form.reset()
+      setImage("")
     } catch (error: unknown) {
       if (error instanceof Error) {
-        toast.error(error.message, { duration: 2500 });
+        toast.error(error.message, { duration: 2500 })
       } else {
-        toast.error("Ocurrió un error desconocido", { duration: 2500 });
+        toast.error("Ocurrió un error desconocido", { duration: 2500 })
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
-  
+  }
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -243,22 +238,46 @@ export function CreateUpdateItem({
             {/* Unidad */}
             <div className="mb-3">
               <Label htmlFor="unit">Unidad</Label>
-              <select {...register("unit")} id="unit" className="w-full border p-2 rounded">
-                <option value="">Seleccione una unidad</option>
-                <option value="UI">UI</option>
-                <option value="UPGD">UPGD</option>
-              </select>
+              <Controller
+                name="unit"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                    <SelectTrigger className="w-[180px]" >
+                      <SelectValue placeholder="Seleccione una unidad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="UPGD">UPGD</SelectItem>
+                        <SelectItem value="UI">UI</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               <p className="form-error">{errors.unit?.message}</p>
             </div>
             {/* Rol */}
             <div className="mb-3">
               <Label htmlFor="role">Rol</Label>
-              <select {...register("role")} id="role" className="w-full border p-2 rounded">
-                <option value="">Seleccione un rol</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="OPERARIO">OPERARIO</option>
-                <option value="USUARIO">USUARIO</option>
-              </select>
+              <Controller
+                name="role"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Seleccione un rol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="ADMIN">ADMIN</SelectItem>
+                        <SelectItem value="OPERARIO">OPERARIO</SelectItem>
+                        <SelectItem value="USUARIO">USUARIO</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               <p className="form-error">{errors.role?.message}</p>
             </div>
             {/* Contraseña */}
@@ -291,6 +310,5 @@ export function CreateUpdateItem({
         </form>
       </DialogContent>
     </Dialog>
-  );
-  
+  )
 }

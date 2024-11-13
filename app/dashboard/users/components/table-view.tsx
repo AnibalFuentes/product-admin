@@ -1,4 +1,3 @@
-// import formatPrice from '@/actions/format-price'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -31,12 +30,14 @@ export function TableView ({
   isLoading
 }: TableViewProps) {
   return (
-    <div className='hidden md:block w-full border border-solid border-gray-300 rounded-3xl p-3 m-0'> {/* Añadido w-full aquí */}
-      <Table className='w-full'> {/* Añadido w-full aquí */}
+    <div className='hidden md:block w-full border border-solid border-gray-300 rounded-3xl p-3 m-0'>
+      <Table className='w-full'>
         <TableHeader>
           <TableRow>
             <TableHead className='text-center w-[100px]'>Imagen</TableHead>
             <TableHead className='text-center'>Nombre</TableHead>
+            <TableHead className='text-center'>Unidad</TableHead>
+            <TableHead className='text-center'>Rol</TableHead>
             <TableHead className='text-center'>Estado</TableHead>
             <TableHead className='text-center w-[250px]'>Acciones</TableHead>
           </TableRow>
@@ -56,6 +57,8 @@ export function TableView ({
                   />
                 </TableCell>
                 <TableCell className='font-semibold text-center'>{item.name}</TableCell>
+                <TableCell className='text-center'>{item.unit}</TableCell>
+                <TableCell className='text-center'>{item.role}</TableCell>
                 <TableCell className='text-center'>
                   {item.state ? (
                     <div>
@@ -109,13 +112,19 @@ export function TableView ({
                 <TableCell>
                   <Skeleton className='h-4 w-full' />
                 </TableCell>
+                <TableCell>
+                  <Skeleton className='h-4 w-full' />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className='h-4 w-full' />
+                </TableCell>
               </TableRow>
             ))}
         </TableBody>
         {!isLoading && items.length !== 0 && (
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={3}>Total</TableCell>
+              <TableCell colSpan={5}>Total</TableCell>
               <TableCell className='text-right'>
                 {items.length}
               </TableCell>
