@@ -15,41 +15,49 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { LayoutDashboard, Speech, Users2 } from "lucide-react"
+import { signOutAccount } from "@/lib/firebase"
+import { useUser } from "@/hooks/use-user"
 
-// Definir solo los elementos necesarios
-const data = {
-  versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: <LayoutDashboard />,
-      isActive: true, // Indicador de estado activo
-    },
-    {
-      title: "Solicitudes",
-      url: "/dashboard/solicitudes",
-      icon: <Speech />,
-      isActive: false,
-    },
-    {
-      title: "Usuarios",
-      url: "/dashboard/users",
-      icon: <Users2 />,
-      isActive: false,
-    },
-  ],
-}
+const navData = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: <LayoutDashboard />,
+    isActive: true,
+    roles: ["ADMIN"], // Solo visible para el rol ADMIN
+  },
+  {
+    title: "Solicitudes",
+    url: "/dashboard/solicitudes",
+    icon: <Speech />,
+    isActive: false,
+    roles: ["ADMIN", "USUARIO","OPERARIO"], // Visible para ADMIN y USER
+  },
+  {
+    title: "Usuarios",
+    url: "/dashboard/users",
+    icon: <Users2 />,
+    isActive: false,
+    roles: ["ADMIN"], // Solo visible para el rol ADMIN
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = useUser()
+
+  // Filtrar las opciones de navegación según el rol del usuario
+  const filteredNav = navData.filter((item) =>
+    item.roles.includes(user?.role)
+  )
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <VersionSwitcher versions={data.versions} defaultVersion={data.versions[0]} />
-        <SearchForm />
+        <VersionSwitcher onLogout={async() => signOutAccount()} />
+        {/* <SearchForm /> */}
       </SidebarHeader>
       <SidebarContent>
-        {data.navMain.map((item) => (
+        {filteredNav.map((item) => (
           <SidebarGroup key={item.title}>
             <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -57,11 +65,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={item.isActive} // Pasar el estado activo
-                    className={item.isActive ? "bg-slate text-white" : ""} // Agregar la clase de fondo
+                    isActive={item.isActive}
+                    className={item.isActive ? "bg-slate text-white" : ""}
                   >
                     <a href={item.url}>
-                      {item.icon} {/* Muestra el ícono */}
+                      {item.icon}
                       {item.title}
                     </a>
                   </SidebarMenuButton>

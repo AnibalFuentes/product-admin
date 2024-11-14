@@ -2,7 +2,9 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useUser } from "@/hooks/use-user"
 import { cn } from "@/lib/utils"
+import { redirect, usePathname } from "next/navigation"
 
 export default function DashboardLayout ({
   children
@@ -10,6 +12,13 @@ export default function DashboardLayout ({
   children: React.ReactNode
 }>) {
   const isMobile = useIsMobile() // Obtiene el estado de la barra lateral
+  const user = useUser()
+  const pathName = usePathname()
+
+  const adminRoutes = ['/dashboard','/dashboard/users']
+  const isInAdminRoute = adminRoutes.includes(pathName)
+
+  if (user && user.role!='ADMIN' &&isInAdminRoute) return redirect('/dashboard/solicitudes')
   return (
     <div
       className={cn('flex', {

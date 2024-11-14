@@ -50,7 +50,7 @@ export const updateUser=async (user: { displayName?: string | null|undefined; ph
   }
   export const signOutAccount=()=>{
     localStorage.removeItem('user');
-    localStorage.removeItem('users');
+    // localStorage.removeItem('users');
   return auth.signOut();
   
   

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, GalleryVerticalEnd } from "lucide-react"
+import { LogOut, ChevronsUpDown, GalleryVerticalEnd } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -16,14 +16,10 @@ import {
 } from "@/components/ui/sidebar"
 
 export function VersionSwitcher({
-  versions,
-  defaultVersion,
+  onLogout, // Añade una función de cierre de sesión como prop
 }: {
-  versions: string[]
-  defaultVersion: string
+  onLogout:  () => void // Definimos el tipo de la función de logout
 }) {
-  const [selectedVersion, setSelectedVersion] = React.useState(defaultVersion)
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -38,7 +34,6 @@ export function VersionSwitcher({
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
                 <span className="font-semibold">Solicitudes - Admin</span>
-                <span className="">v{selectedVersion}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -47,15 +42,11 @@ export function VersionSwitcher({
             className="w-[--radix-dropdown-menu-trigger-width]"
             align="start"
           >
-            {versions.map((version) => (
-              <DropdownMenuItem
-                key={version}
-                onSelect={() => setSelectedVersion(version)}
-              >
-                v{version}{" "}
-                {version === selectedVersion && <Check className="ml-auto" />}
-              </DropdownMenuItem>
-            ))}
+            {/* Botón de Cerrar Sesión */}
+            <DropdownMenuItem onSelect={onLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar sesión
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

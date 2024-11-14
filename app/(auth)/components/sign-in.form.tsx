@@ -7,7 +7,8 @@ import Link from 'next/link'
 import * as z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { SignIn } from '@/lib/firebase'
+import { SignIn, signOutAccount } from '@/lib/firebase'
+import { getAuth } from 'firebase/auth' // Importación para verificar el estado de email
 import { useState } from 'react'
 import { LoaderCircle, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -41,6 +42,16 @@ const SignInForm = () => {
     setIsLoading(true)
     try {
       await SignIn(user)
+
+      const auth = getAuth()
+      const currentUser = auth.currentUser
+
+      if (currentUser && !currentUser.emailVerified) {
+        toast.error('Por favor verifica tu correo electrónico antes de iniciar sesión.', { duration: 3000 })
+        await signOutAccount()
+        return
+      }
+
       toast.success('Ingreso Exitoso', { duration: 2500 })
     } catch (error: unknown) {
       if (error instanceof Error) {

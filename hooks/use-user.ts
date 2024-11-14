@@ -30,7 +30,7 @@ export const useUser = () => {
 
       if (userFromArray) {
         setUser(userFromArray);
-        setInLocalstorage("user", userFromArray);
+        setInLocalstorage("user", userFromArray); // Guardar el usuario en local storage solo si es válido
       } else {
         console.warn("Usuario no encontrado en la base de datos.");
       }
@@ -40,15 +40,16 @@ export const useUser = () => {
   };
 
   useEffect(() => {
-    return onAuthStateChanged(auth, async (authUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
       if (authUser) {
-        const userInLocal = getFromLocalstorage("user");
-        if (userInLocal) setUser(userInLocal);
-        else getUserFromDB(authUser.uid);
+        await getUserFromDB(authUser.uid); // Llamar siempre a `getUserFromDB` al iniciar sesión
       } else {
+        // Redirigir a la página de inicio si el usuario no está autenticado y está en una ruta protegida
         if (isInProtectedRoute) router.push("/");
+        setUser(undefined); // Limpiar el estado `user` cuando no hay usuario autenticado
       }
     });
+    return () => unsubscribe();
   }, [isInProtectedRoute, router]);
 
   return user;
