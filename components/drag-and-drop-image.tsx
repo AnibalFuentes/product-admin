@@ -35,6 +35,7 @@ export default function DragAndDropImage ({
       minHeight={'135px'}
       onChange={updateFiles}
       value={files}
+      
       //accept="image/*"
     >
       {files.map(file => (

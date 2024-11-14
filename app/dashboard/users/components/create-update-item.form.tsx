@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { User as FirebaseUser } from 'firebase/auth'; 
 import {
   Dialog,
   DialogContent,
@@ -16,10 +17,9 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
-
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import * as z from 'zod'
 import { useForm, Controller } from 'react-hook-form'
@@ -34,6 +34,9 @@ import { ItemImage } from '@/interfaces/item-image.interface'
 import DragAndDropImage from '@/components/drag-and-drop-image'
 import { createUser, signOutAccount, updateDocument, uploadBase64 } from '@/lib/firebase'
 import { arrayRemove, arrayUnion } from 'firebase/firestore'
+import { getAuth, sendEmailVerification } from 'firebase/auth'
+import { DropdownMenuDemo } from './dropdownVerification';
+import { Switch } from '@/components/ui/switch';
 
 interface CreateUpdateItemProps {
   children: React.ReactNode
@@ -51,6 +54,9 @@ export function CreateUpdateItem({
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [image, setImage] = useState('')
   const [state, setState] = useState(itemToUpdate?.state || false)
+  const [canResend, setCanResend] = useState(true)
+  const [edit, setEdit] = useState<boolean>(false)
+
 
   const formSchema = z.object({
     uid: z.string(),
@@ -96,6 +102,27 @@ export function CreateUpdateItem({
     }
   }, [itemToUpdate])
 
+  const sendVerificationEmail = async (currentUser: FirebaseUser) => {
+    try {
+      await sendEmailVerification(currentUser);
+      toast.success("Correo de verificación enviado");
+      setCanResend(false);
+      setTimeout(() => setCanResend(true), 60000); // Permitir reenvío después de 1 minuto
+    } catch (error) {
+      const err = error as Error;
+      toast.error(`Error al enviar verificación: ${err.message}`);
+    }
+  };
+  
+  const handleSendVerificationEmail = () => {
+    const currentUser = getAuth().currentUser;
+    if (currentUser) {
+      sendVerificationEmail(currentUser);
+    } else {
+      toast.error("No hay un usuario autenticado para enviar la verificación.");
+    }
+  };
+
   const updateCategoryInDB = async (item: User) => {
     const path = `usuarios/users`
     setIsLoading(true)
@@ -121,11 +148,7 @@ export function CreateUpdateItem({
       form.reset()
       setImage('')
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message, { duration: 2500 })
-      } else {
-        toast.error('Ocurrió un error desconocido', { duration: 2500 })
-      }
+      toast.error(error instanceof Error ? error.message : 'Ocurrió un error desconocido', { duration: 2500 })
     } finally {
       setIsLoading(false)
     }
@@ -140,12 +163,14 @@ export function CreateUpdateItem({
     } else {
       createCategoryInDB(item as User);
     }
+    
   };
 
   const createCategoryInDB = async (item: User) => {
     const path = `usuarios/users`
     setIsLoading(true)
     try {
+      const auth = getAuth()
       const userCredential = await createUser({
         email: item.email,
         password: item.password!
@@ -163,37 +188,51 @@ export function CreateUpdateItem({
         users: arrayUnion(item)
       })
 
+      await sendVerificationEmail(userCredential.user)
       toast.success("Usuario Creado Exitosamente", { duration: 2500 })
       getItems()
       setIsDialogOpen(false)
       form.reset()
       setImage("")
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message, { duration: 2500 })
-      } else {
-        toast.error("Ocurrió un error desconocido", { duration: 2500 })
-      }
+      toast.error(error instanceof Error ? error.message : "Ocurrió un error desconocido", { duration: 2500 })
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={(open) => {
+      setIsDialogOpen(open);
+      if (!open ) {
+        form.reset(); // Limpia el formulario al cerrar el diálogo cuando es un nuevo usuario
+        if(itemToUpdate){
+          setImage(itemToUpdate.image.url)
+        }else{
+          setImage('')
+
+        }
+        setEdit(false); // Resetea el estado de edición
+      }
+    }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className='sm:max-w-[425px] max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>{itemToUpdate ? 'Editar Usuario' : 'Crear Usuario'}</DialogTitle>
+          <DialogTitle>{itemToUpdate ? (<div className='flex items-center'><DropdownMenuDemo onResendVerification={handleSendVerificationEmail} /> Editar Usuario</div>) : 'Crear Usuario'}</DialogTitle>
           <DialogDescription>
             Gestiona tu usuario con la siguiente información.
           </DialogDescription>
+          {itemToUpdate&&<div className='flex items-center space-x-2'>
+      <Switch id='state' checked={edit} onCheckedChange={setEdit} />
+      <Label htmlFor='state'>Actualizar</Label>
+    </div>}
+          
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-2">
             {/* Imagen */}
             <div className="mb-3">
-              <Label htmlFor="image">Imagen</Label>
+              {/* <Label htmlFor="image">Imagen</Label> */}
               {image ? (
                 <div className="text-center">
                   <Image
@@ -201,16 +240,18 @@ export function CreateUpdateItem({
                     height={1000}
                     src={image}
                     alt="user-image"
-                    className="w-[50%] m-auto"
+                    className="object-cover w-32 h-32 rounded-full m-auto"
                   />
                   <Button
                     className="mt-3"
                     variant="destructive"
                     type="button"
                     onClick={() => handleImage("")}
-                    disabled={isLoading}
+                    disabled={isLoading || (!Boolean(edit) && Boolean(itemToUpdate))}
+
+
                   >
-                    Remover Imagen
+                    <Trash2/>
                   </Button>
                 </div>
               ) : (
@@ -220,29 +261,29 @@ export function CreateUpdateItem({
             {/* Nombre */}
             <div className="mb-3">
               <Label htmlFor="name">Nombre</Label>
-              <Input {...register("name")} id="name" placeholder="Nombre" />
+              <Input {...register("name")} id="name" placeholder="Nombre" readOnly={!edit&&Boolean(itemToUpdate)}/>
               <p className="form-error">{errors.name?.message}</p>
             </div>
             {/* Email */}
-            <div className="mb-3">
+            
+            <div className="mb-3" >
               <Label htmlFor="email">Email</Label>
-              <Input {...register("email")} id="email" placeholder="Correo Electrónico" />
+              <Input {...register("email")} id="email" placeholder="Correo Electrónico" readOnly={itemToUpdate?true:false}/>
               <p className="form-error">{errors.email?.message}</p>
             </div>
             {/* Teléfono */}
             <div className="mb-3">
               <Label htmlFor="phone">Teléfono</Label>
-              <Input {...register("phone")} id="phone" placeholder="Teléfono" />
+              <Input {...register("phone")} id="phone" placeholder="Teléfono" readOnly={!edit&&Boolean(itemToUpdate)}/>
               <p className="form-error">{errors.phone?.message}</p>
             </div>
             {/* Unidad */}
             <div className="mb-3">
-              <Label htmlFor="unit">Unidad</Label>
               <Controller
                 name="unit"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value} disabled={!edit&&Boolean(itemToUpdate)}>
                     <SelectTrigger className="w-[180px]" >
                       <SelectValue placeholder="Seleccione una unidad" />
                     </SelectTrigger>
@@ -259,12 +300,11 @@ export function CreateUpdateItem({
             </div>
             {/* Rol */}
             <div className="mb-3">
-              <Label htmlFor="role">Rol</Label>
               <Controller
                 name="role"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value} disabled={!edit&&Boolean(itemToUpdate)}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Seleccione un rol" />
                     </SelectTrigger>
@@ -282,6 +322,7 @@ export function CreateUpdateItem({
             </div>
             {/* Contraseña */}
             {!itemToUpdate && (
+              
               <div className="mb-3">
                 <Label htmlFor="password">Contraseña</Label>
                 <Input
@@ -289,6 +330,7 @@ export function CreateUpdateItem({
                   id="password"
                   placeholder="Contraseña"
                   type="password"
+                  disabled={!edit&&Boolean(itemToUpdate)}
                 />
                 <p className="form-error">{errors.password?.message}</p>
               </div>
@@ -296,13 +338,16 @@ export function CreateUpdateItem({
             {/* Estado */}
             {itemToUpdate && (
               <div className="mb-3">
-                <SwitchStateItem checked={state} onChange={setState} />
+                 <div className='flex items-center space-x-2'>
+      <Switch id='state' checked={state} onCheckedChange={setState} disabled={!edit} />
+      <Label htmlFor='state'>Estado</Label>
+    </div>
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button onClick={() => signOutAccount()}></Button>
-            <Button type='submit' disabled={isLoading}>
+            
+            <Button type='submit' disabled={isLoading||!edit&&Boolean(itemToUpdate)}>
               {isLoading && <LoaderCircle className='mr-2 h-4 animate-spin' />}
               {itemToUpdate ? 'Actualizar' : 'Crear'}
             </Button>
