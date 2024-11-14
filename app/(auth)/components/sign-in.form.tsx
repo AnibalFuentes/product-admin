@@ -48,7 +48,8 @@ const SignInForm = () => {
 
       if (currentUser && !currentUser.emailVerified) {
         toast.error('Por favor verifica tu correo electrónico antes de iniciar sesión.', { duration: 3000 })
-        await signOutAccount()
+        
+        
         return
       }
 

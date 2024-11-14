@@ -24,13 +24,21 @@ export const useUser = () => {
     const path = `usuarios/users`;
     try {
       const res = await getDocument(path);
-      
+
       // Buscar el usuario en el array `users` dentro del documento `usuarios`
       const userFromArray = res?.users.find((user: User) => user.uid === uid);
 
       if (userFromArray) {
-        setUser(userFromArray);
-        setInLocalstorage("user", userFromArray); // Guardar el usuario en local storage solo si es válido
+        const authUser = auth.currentUser;
+        
+        // Verificar si el email está verificado
+        if (authUser?.emailVerified) {
+          setUser(userFromArray);
+          setInLocalstorage("user", userFromArray); // Guardar el usuario en local storage solo si el email está verificado
+        } else {
+          auth.signOut();
+          console.warn("El email del usuario no está verificado.");
+        }
       } else {
         console.warn("Usuario no encontrado en la base de datos.");
       }
