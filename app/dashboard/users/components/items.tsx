@@ -11,6 +11,7 @@ import { CirclePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import ListView from './list-view'
 import { arrayRemove } from 'firebase/firestore'
+import { DEFAULT_USER_IMAGE_URL } from '@/constants/constants'
 
 const Items = () => {
   const user = useUser()
@@ -42,27 +43,39 @@ const Items = () => {
 
   //================ELIMINAR USUARIO DE FIRESTORE
   const deleteUserInDB = async (item: User) => {
-    const path = `usuarios/users`
-    setIsLoading(true)
+    const path = `usuarios/users`;
+    setIsLoading(true);
+  
+    // URL de la imagen por defecto
+    const defaultImageUrl = DEFAULT_USER_IMAGE_URL
+  
     try {
-      await deleteImage(item.image.path) // Eliminar la imagen del usuario
+      // Verificar si la imagen no es la predeterminada antes de intentar eliminarla
+      if (item.image?.url && item.image.url !== defaultImageUrl) {
+        await deleteImage(item.image.url); // Eliminar la imagen del usuario si no es la predeterminada
+      }
+  
+      // Remover el usuario del array en Firestore
       await updateDocument(path, {
-        users: arrayRemove(item) // Remover el usuario del array en Firestore
-      })
-      toast.success('Usuario Eliminado Exitosamente 🗑️', { duration: 2500 })
-
-      const newItems = items.filter(i => i.uid !== item.uid)
-      setItems(newItems)
+        users: arrayRemove(item)
+      });
+  
+      toast.success('Usuario Eliminado Exitosamente 🗑️', { duration: 2500 });
+  
+      // Actualizar el estado local de los usuarios
+      const newItems = items.filter(i => i.uid !== item.uid);
+      setItems(newItems);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        toast.error(error.message, { duration: 2500 })
+        toast.error(error.message, { duration: 2500 });
       } else {
-        toast.error('Ocurrió un error desconocido', { duration: 2500 })
+        toast.error('Ocurrió un error desconocido', { duration: 2500 });
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+  
 
   useEffect(() => {
     if (user) getItems()

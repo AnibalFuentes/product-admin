@@ -46,14 +46,14 @@ const SignInForm = () => {
       const auth = getAuth()
       const currentUser = auth.currentUser
 
-      if (currentUser && !currentUser.emailVerified) {
-        toast.error('Por favor verifica tu correo electrónico antes de iniciar sesión.', { duration: 3000 })
+      // if (currentUser && !currentUser.emailVerified) {
+      //   toast.error('Por favor verifica tu correo electrónico antes de iniciar sesión.', { duration: 3000 })
         
         
-        return
-      }
+      //   return
+      // }
 
-      toast.success('Ingreso Exitoso', { duration: 2500 })
+      // toast.success('Ingreso Exitoso', { duration: 2500 })
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message, { duration: 2500 })

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { User as FirebaseUser } from 'firebase/auth'; 
+import { User as FirebaseUser, signOut } from 'firebase/auth'; 
 import {
   Dialog,
   DialogContent,
@@ -32,11 +32,12 @@ import { SwitchStateItem } from './switch-state-item'
 import { User } from '@/interfaces/user.interface'
 import { ItemImage } from '@/interfaces/item-image.interface'
 import DragAndDropImage from '@/components/drag-and-drop-image'
-import { createUser, db, signOutAccount, updateDocument, uploadBase64 } from '@/lib/firebase'
+import { createUser, db, SignIn, signOutAccount, updateDocument, uploadBase64 } from '@/lib/firebase'
 import { arrayRemove, arrayUnion, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { getAuth, sendEmailVerification } from 'firebase/auth'
 import { DropdownMenuDemo } from './dropdownVerification';
 import { Switch } from '@/components/ui/switch';
+import { DEFAULT_USER_IMAGE_URL } from '@/constants/constants';
 
 interface CreateUpdateItemProps {
   children: React.ReactNode
@@ -77,7 +78,10 @@ export function CreateUpdateItem({
     resolver: zodResolver(formSchema),
     defaultValues: itemToUpdate || {
       uid: '',
-      image: {} as ItemImage,
+      image: {
+        path:'defaultImages',
+        url:'https://firebasestorage.googleapis.com/v0/b/happy-cream.appspot.com/o/defaultImages%2Fusuario.jpeg?alt=media&token=b0e2e7f4-dc3e-49dd-9b4e-24c74c9d2d57'
+      } as ItemImage,
       name: '',
       email: '',
       password: '',
@@ -97,7 +101,7 @@ export function CreateUpdateItem({
     }
   }, [itemToUpdate])
   
-  const sendVerificationEmail = async (currentUser: FirebaseUser) => {
+   const sendVerificationEmail = async (currentUser: FirebaseUser) => {
     try {
       await sendEmailVerification(currentUser);
       toast.success("Correo de verificación enviado");
@@ -117,42 +121,45 @@ export function CreateUpdateItem({
       toast.error("No hay un usuario autenticado para enviar la verificación.");
     }
   };
-
   const handleImage = (url: string) => {
     const path = itemToUpdate ? itemToUpdate.image.path : `${user?.uid}/${Date.now()}`
     setValue('image', { url, path })
     setImage(url)
   }
+  
   const updateCategoryInDB = async (item: User) => {
-    const path = 'usuarios/users'
-    setIsLoading(true)
+    const path = 'usuarios/users';
+    setIsLoading(true);
+    const defaultImageUrl = DEFAULT_USER_IMAGE_URL
     try {
-      if (itemToUpdate?.image.url !== item.image.url) {
-        const base64 = item.image.url
-        const imagePath = item.image.path || `${itemToUpdate?.uid}/${Date.now()}`
-        const imageUrl = await uploadBase64(imagePath, base64)
-        item.image.url = imageUrl
+      // Actualiza la imagen solo si no es la imagen por defecto
+      if (itemToUpdate?.image.url !== defaultImageUrl && itemToUpdate?.image.url !== item.image.url) {
+        const base64 = item.image.url;
+        const imagePath = item.image.path || `${itemToUpdate?.uid}/${Date.now()}`;
+        const imageUrl = await uploadBase64(imagePath, base64);
+        item.image.url = imageUrl;
       }
-
+  
       await updateDocument(path, {
         users: arrayRemove(itemToUpdate)
-      })
-
+      });
+  
       await updateDocument(path, {
         users: arrayUnion(item)
-      })
-
-      toast.success('Usuario Actualizado Exitosamente', { duration: 2500 })
-      getItems()
-      setIsDialogOpen(false)
-      form.reset()
-      setImage('')
+      });
+  
+      toast.success('Usuario Actualizado Exitosamente', { duration: 2500 });
+      getItems();
+      setIsDialogOpen(false);
+      form.reset();
+      setImage('');
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'Ocurrió un error desconocido', { duration: 2500 })
+      toast.error(error instanceof Error ? error.message : 'Ocurrió un error desconocido', { duration: 2500 });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+  
 
   const onSubmit = (item: z.infer<typeof formSchema>) => {
     item.state = state;
@@ -169,7 +176,7 @@ export function CreateUpdateItem({
   const createUserInDB = async (item: User) => {
     const path = `usuarios/users`;
     setIsLoading(true);
-    
+  
     try {
       // Crea el usuario en Firebase Authentication
       const userCredential = await createUser({
@@ -178,11 +185,13 @@ export function CreateUpdateItem({
       });
       const userId = userCredential.user.uid;
   
-      // Si el usuario tiene una imagen, sube la imagen y actualiza la URL
-      const base64 = item.image.url;
-      const imagePath = item.image.path || `${userId}/${Timestamp.now()}`;
-      const imageUrl = await uploadBase64(imagePath, base64);
-      item.image.url = imageUrl;
+      // Verificar si la imagen no es la predeterminada antes de intentar subirla
+      if (item.image.url !== DEFAULT_USER_IMAGE_URL) {
+        const base64 = item.image.url;
+        const imagePath = item.image.path || `${userId}/${Timestamp.now()}`;
+        const imageUrl = await uploadBase64(imagePath, base64);
+        item.image.url = imageUrl;
+      }
   
       // Asigna el UID, elimina la contraseña y agrega la fecha de creación
       item.uid = userId;
@@ -191,7 +200,7 @@ export function CreateUpdateItem({
   
       // Referencia al documento único en Firestore
       const docRef = doc(db, path);
-      
+  
       // Verificar si el documento ya existe en Firestore
       const docSnap = await getDoc(docRef);
   
@@ -238,7 +247,7 @@ export function CreateUpdateItem({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className='sm:max-w-[425px] max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>{itemToUpdate ? (<div className='flex items-center'><DropdownMenuDemo onResendVerification={handleSendVerificationEmail} /> Editar Usuario</div>) : 'Crear Usuario'}</DialogTitle>
+          <DialogTitle><div className='flex items-center'><DropdownMenuDemo onResendVerification={handleSendVerificationEmail} getItems={getItems} itemToUpdate={itemToUpdate} /> {itemToUpdate?'Editar Usuario':'Crear Usuario'}</div></DialogTitle>
           <DialogDescription>
             Gestiona tu usuario con la siguiente información.
           </DialogDescription>

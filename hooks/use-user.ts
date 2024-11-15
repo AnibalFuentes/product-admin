@@ -30,15 +30,12 @@ export const useUser = () => {
 
       if (userFromArray) {
         const authUser = auth.currentUser;
-        
+
         // Verificar si el email está verificado
-        if (authUser?.emailVerified) {
+        
           setUser(userFromArray);
           setInLocalstorage("user", userFromArray); // Guardar el usuario en local storage solo si el email está verificado
-        } else {
-          auth.signOut();
-          console.warn("El email del usuario no está verificado.");
-        }
+        
       } else {
         console.warn("Usuario no encontrado en la base de datos.");
       }
@@ -52,6 +49,9 @@ export const useUser = () => {
       if (authUser) {
         await getUserFromDB(authUser.uid); // Llamar siempre a `getUserFromDB` al iniciar sesión
       } else {
+        localStorage.removeItem("user");
+
+        localStorage.clear();
         // Redirigir a la página de inicio si el usuario no está autenticado y está en una ruta protegida
         if (isInProtectedRoute) router.push("/");
         setUser(undefined); // Limpiar el estado `user` cuando no hay usuario autenticado
