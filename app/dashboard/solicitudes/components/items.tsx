@@ -1,31 +1,35 @@
 'use client'
-import { deleteDocument, deleteImage, getCollection } from '@/lib/firebase'
+
+import { deleteImage, getDocument, updateDocument } from '@/lib/firebase'
 import { CreateUpdateItem } from './create-update-item.form'
 import { useEffect, useState } from 'react'
 import { useUser } from '@/hooks/use-user'
 import { TableView } from './table-view'
-import { Category } from '@/interfaces/category.interface'
+import { User } from '@/interfaces/user.interface'
 import toast from 'react-hot-toast'
 import { CirclePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { orderBy } from 'firebase/firestore'
 import ListView from './list-view'
+import { arrayRemove } from 'firebase/firestore'
+import { Solicitud } from '@/interfaces/solicitud.interface'
 
 const Items = () => {
   const user = useUser()
-  const [items, setItems] = useState<Category[]>([])
+  const [items, setItems] = useState<Solicitud[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  //=========OBTENER ITEMS FIREBASE
+  //=========OBTENER USUARIOS DE FIRESTORE
   const getItems = async () => {
-    const path = `categorys`
-    const query = [orderBy('createdAt', 'desc')]
+    const path = `solicitudes/solicitudes`
 
     setIsLoading(true)
     try {
-      const res = (await getCollection(path, query)) as Category[]
-      console.log(res)
-      setItems(res)
+      const res = (await getDocument(path)) as { solicitudes: Solicitud[] }
+      if (res && res.solicitudes) {
+        setItems(res.solicitudes)
+      } else {
+        setItems([])
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message, { duration: 2500 })
@@ -36,17 +40,19 @@ const Items = () => {
       setIsLoading(false)
     }
   }
-  //================DELETE ITEM
 
-  const deleteCategoryInDB = async (item: Category) => {
-    const path = `categorys/${item.id}`
+  //================ELIMINAR USUARIO DE FIRESTORE
+  const deleteUserInDB = async (item: Solicitud) => {
+    const path = `solicitudes/solicitudes`
     setIsLoading(true)
     try {
-      await deleteImage(item.image.path)
-      await deleteDocument(path)
-      toast.success('Categoria Eliminada Exitosamente 🗑️', { duration: 2500 })
+      
+      await updateDocument(path, {
+        users: arrayRemove(item) // Remover el usuario del array en Firestore
+      })
+      toast.success('Usuario Eliminado Exitosamente 🗑️', { duration: 2500 })
 
-      const newItems = items.filter(i => i.id != item.id)
+      const newItems = items.filter(i => i.uid !== item.uid)
       setItems(newItems)
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -61,7 +67,6 @@ const Items = () => {
 
   useEffect(() => {
     if (user) getItems()
-    
   }, [user])
 
   return (
@@ -76,17 +81,17 @@ const Items = () => {
         </CreateUpdateItem>
       </div>
       <TableView
-        deleteCategoryInDB={deleteCategoryInDB}
+        deleteUserInDB={deleteUserInDB}
         getItems={getItems}
         items={items}
         isLoading={isLoading}
       />
-      <ListView
+      {/* <ListView
         getItems={getItems}
-        deleteCategoryInDB={deleteCategoryInDB}
+        deleteUserInDB={deleteUserInDB}
         items={items}
         isLoading={isLoading}
-      />
+      /> */}
     </div>
   )
 }

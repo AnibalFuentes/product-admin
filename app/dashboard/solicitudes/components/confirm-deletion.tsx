@@ -9,17 +9,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import { Category } from '@/interfaces/category.interface'
-//   import { Button } from "@/components/ui/button"
+import { User } from '@/interfaces/user.interface' // Cambia la interfaz a User
+
 interface ConfirmDeletionProps {
   children: React.ReactNode
-  deleteCategoryInDB: (item: Category) => Promise<void>
-  item: Category
+  deleteUserInDB: (item: User) => Promise<void> // Cambia la función a deleteUserInDB
+  item: User // Cambia el tipo de item a User
 }
 
 export function ConfirmDeletion ({
   children,
-  deleteCategoryInDB,
+  deleteUserInDB,
   item
 }: ConfirmDeletionProps) {
   return (
@@ -28,11 +28,11 @@ export function ConfirmDeletion ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Estás seguro de eliminar esta categoria?
+            ¿Estás seguro de eliminar este usuario?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción no se puede deshacer, esto eliminará permanentemente el
-            producto
+            Esta acción no se puede deshacer. Esto eliminará permanentemente el
+            usuario.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -40,8 +40,8 @@ export function ConfirmDeletion ({
             Cancelar
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => deleteCategoryInDB(item)}
-            className='bg-red-900   hover:bg-red-600 hover:animate-none animate-pulse'
+            onClick={() => deleteUserInDB(item)} // Cambia la función a deleteUserInDB
+            className='bg-red-900 hover:bg-red-600 hover:animate-none animate-pulse'
           >
             Aceptar
           </AlertDialogAction>

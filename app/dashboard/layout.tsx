@@ -16,11 +16,11 @@ export default function DashboardLayout ({
   const pathName = usePathname()
 
   const adminRoutes = ['/dashboard','/dashboard/users']
-  const isInAdminRoute = adminRoutes.includes(pathName)
+  const isInAdminRoute = adminRoutes.includes(pathName!)
 
   if (user && user.role!='ADMIN' &&isInAdminRoute) return redirect('/dashboard/solicitudes')
   return (
-    <div
+    <div 
       className={cn('flex', {
         'debug-screens': process.env.NODE_ENV === 'development'
       })}

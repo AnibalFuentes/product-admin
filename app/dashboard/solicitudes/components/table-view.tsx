@@ -1,4 +1,3 @@
-// import formatPrice from '@/actions/format-price'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -9,36 +8,38 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { Category } from '@/interfaces/category.interface'
-import { Ban, CheckCircle, Eye, EyeOff, LayoutList, SquarePen, Trash2 } from 'lucide-react'
+import { User } from '@/interfaces/user.interface'
+import { Ban, CheckCircle, LayoutList, SquarePen, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { CreateUpdateItem } from './create-update-item.form'
 import { ConfirmDeletion } from './confirm-deletion'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Solicitud } from '@/interfaces/solicitud.interface'
 
 interface TableViewProps {
-  items: Category[]
+  items: Solicitud[]
   getItems: () => Promise<void>
-  deleteCategoryInDB: (item: Category) => Promise<void>
+  deleteUserInDB: (item: Solicitud) => Promise<void>
   isLoading: boolean
 }
 
 export function TableView ({
   items,
   getItems,
-  deleteCategoryInDB,
+  deleteUserInDB,
   isLoading
 }: TableViewProps) {
   return (
-    <div className='hidden md:block w-full'> {/* Añadido w-full aquí */}
-      <Table className='w-full'> {/* Añadido w-full aquí */}
-        {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
+    <div className='hidden md:block w-full border border-solid border-gray-300 rounded-3xl p-3 m-0'>
+      <Table className='w-full'>
         <TableHeader>
-          <TableRow >
+          <TableRow>
             <TableHead className='text-center w-[100px]'>Imagen</TableHead>
-            <TableHead className='text-center'>nombre</TableHead>
-            <TableHead className='text-center'>estado</TableHead>
+            <TableHead className='text-center'>Nombre</TableHead>
+            <TableHead className='text-center'>Unidad</TableHead>
+            <TableHead className='text-center'>Rol</TableHead>
+            <TableHead className='text-center'>Estado</TableHead>
             <TableHead className='text-center w-[250px]'>Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -46,7 +47,7 @@ export function TableView ({
           {!isLoading &&
             items &&
             items.map(item => (
-              <TableRow key={item.id}>
+              <TableRow key={item.uid}>
                 <TableCell>
                   <Image
                     className='object-cover w-16 h-16 rounded-full'
@@ -57,6 +58,8 @@ export function TableView ({
                   />
                 </TableCell>
                 <TableCell className='font-semibold text-center'>{item.name}</TableCell>
+                <TableCell className='text-center'>{item.unit}</TableCell>
+                <TableCell className='text-center'>{item.role}</TableCell>
                 <TableCell className='text-center'>
                   {item.state ? (
                     <div>
@@ -85,7 +88,7 @@ export function TableView ({
                     </Button>
                   </CreateUpdateItem>
                   <ConfirmDeletion
-                    deleteCategoryInDB={deleteCategoryInDB}
+                    deleteUserInDB={deleteUserInDB}
                     item={item}
                   >
                     <Button className='ml-4' variant={'destructive'}>
@@ -96,10 +99,16 @@ export function TableView ({
               </TableRow>
             ))}
           {isLoading &&
-            [1, 1, 1, 1, 1].map((e, i) => (
+            [1, 1, 1, 1, 1].map((_, i) => (
               <TableRow key={i}>
                 <TableCell>
                   <Skeleton className='h-16 rounded-xl' />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className='h-4 w-full' />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className='h-4 w-full' />
                 </TableCell>
                 <TableCell>
                   <Skeleton className='h-4 w-full' />
@@ -116,7 +125,7 @@ export function TableView ({
         {!isLoading && items.length !== 0 && (
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={3}>Total</TableCell>
+              <TableCell colSpan={5}>Total</TableCell>
               <TableCell className='text-right'>
                 {items.length}
               </TableCell>
@@ -129,7 +138,7 @@ export function TableView ({
           <div className='flex justify-center'>
             <LayoutList className='no-data' />
           </div>
-          <h2 className='text-center'>No hay categorias disponibles</h2>
+          <h2 className='text-center'>No hay usuarios disponibles</h2>
         </div>
       )}
     </div>

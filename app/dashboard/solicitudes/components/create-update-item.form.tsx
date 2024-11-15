@@ -1,5 +1,4 @@
-'use client'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -8,208 +7,269 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { LoaderCircle } from 'lucide-react'
-
-import * as z from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { addDocument, updateDocument, uploadBase64 } from '@/lib/firebase'
-import { useEffect, useState } from 'react'
-import toast from 'react-hot-toast'
-import { ItemImage } from '../../../../interfaces/item-image.interface'
-import DragAndDropImage from '@/components/drag-and-drop-image'
-import { useUser } from '@/hooks/use-user'
-import { Category } from '@/interfaces/category.interface'
-// import { Switch } from '@/components/ui/switch'
-import { SwitchStateItem } from './switch-state-item'
-import Image from 'next/image'
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { LoaderCircle } from 'lucide-react';
+import * as z from 'zod';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { EstadoSolicitud, Solicitud, TipoSolicitud, SubtipoSivigila, SubtipoProtocolo } from '@/interfaces/solicitud.interface';
+import { db, updateDocument } from '@/lib/firebase';
+import { arrayRemove, arrayUnion, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
 interface CreateUpdateItemProps {
-  children: React.ReactNode
-  itemToUpdate?: Category
+  children: React.ReactNode;
+  itemToUpdate?: Solicitud;
   getItems: () => Promise<void>
 }
 
-export function CreateUpdateItem ({
+export function CreateUpdateItem({
   children,
   itemToUpdate,
   getItems
 }: CreateUpdateItemProps) {
-  const user = useUser()
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
-  const [image, setImage] = useState<string>('')
-  const [state, setState] = useState<boolean>(itemToUpdate?.state || false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [state, setState] = useState(itemToUpdate?.state || EstadoSolicitud.PENDIENTE);
 
   const formSchema = z.object({
-    image: z.object({
-      path: z.string(),
-      url: z.string()
-    }),
-    state: z.boolean(),
-    name: z
-      .string()
-      .min(2, { message: 'Este campo es requerido, al menos 2 caracteres' })
-  })
+    uid: z.string(),
+    name: z.string().min(2, { message: 'Este campo es requerido, al menos 2 caracteres' }),
+    description: z.string().min(10, { message: 'La descripción debe tener al menos 10 caracteres' }),
+    type: z.nativeEnum(TipoSolicitud, { message: 'Seleccione un tipo de solicitud válido' }),
+    subtype: z.string().nonempty({ message: 'Seleccione un subtipo' }),
+    state: z.nativeEnum(EstadoSolicitud)
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: itemToUpdate
-      ? itemToUpdate
-      : {
-          image: {} as ItemImage,
-          name: '',
-          state: false
-        }
-  })
+    defaultValues: itemToUpdate || {
+      uid: '',
+      name: '',
+      description: '',
+      type: undefined,
+      subtype: '',
+      state: EstadoSolicitud.PENDIENTE
+    },
+    mode: "onChange" // Enables form validation on each input change
+  });
 
-  const { register, handleSubmit, formState, setValue } = form
-  const { errors } = formState
+  const { register, handleSubmit, formState, setValue, control, watch } = form;
+  const { errors } = formState;
 
-  const handleImage = (url: string) => {
-    const path = itemToUpdate
-      ? itemToUpdate.image.path
-      : `${user?.uid}/${Date.now()}`
-    setValue('image', { url, path })
-    setImage(url)
-  }
+  const selectedType = watch("type");
 
   useEffect(() => {
     if (itemToUpdate) {
-      setImage(itemToUpdate.image.url)
-      setState(itemToUpdate.state)
+      setState(itemToUpdate.state);
     }
-  }, [itemToUpdate])
+  }, [itemToUpdate]);
 
-  const onSubmit = (item: z.infer<typeof formSchema>) => {
-    item.state = state
-    if (itemToUpdate) updateCategoryInDB(item)
-    else createCategoryInDB(item)
-  }
+  const onSubmit = async (item: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    try {
+      if (itemToUpdate) {
+        await updateSolicitudInDB(itemToUpdate);
+      } else {
+        await createSolicitudInDB(item as Solicitud);
+      }
+      toast.success('Solicitud procesada exitosamente');
+      getItems();
+      setIsDialogOpen(false);
+      form.reset();
+    } catch (error) {
+      toast.error('Ocurrió un error al procesar la solicitud');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const createCategoryInDB = async (item: Category) => {
-    const path = `categorys`
+  const createSolicitudInDB = async (item: Solicitud) => {
+    const path = `solicitudes/solicitudes`;
+    setIsLoading(true);
+    
+    try {
+      // Genera un UID único para la solicitud usando uuidv4
+      item.uid = uuidv4();
+      item.createdAt = Timestamp.now(); // Agrega un timestamp de creación
+  
+      // Referencia al documento único que contiene el array de usuarios
+      const docRef = doc(db, path);
+  
+      // Verificar si el documento existe
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        // Si el documento existe, utiliza updateDocument para agregar al array existente
+        await updateDocument(path, {
+          solicitudes: arrayUnion(item)
+        });
+      } else {
+        // Si el documento no existe, utiliza setDoc para crearlo y agregar el array de usuarios
+        await setDoc(docRef, {
+          solicitudes: [item] // Crea un array inicial con la primera solicitud
+        });
+      }
+  
+      toast.success("Solicitud creada exitosamente", { duration: 2500 });
+      getItems(); // Refresca la lista de solicitudes
+      setIsDialogOpen(false);
+      form.reset(); // Resetea el formulario
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Ocurrió un error desconocido", { duration: 2500 });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateSolicitudInDB = async (item: Solicitud) => {
+     const path = `solicitudes/solicitudes`
     setIsLoading(true)
     try {
-      const base64 = item.image.url
-      const imagePath = item.image.path
-      const imageUrl = await uploadBase64(imagePath, base64)
+     
+      await updateDocument(path, {
+        users: arrayRemove(itemToUpdate)
+      })
 
-      item.image.url = imageUrl
-      await addDocument(path, item)
-      toast.success('Categoria Creada Exitosamente', { duration: 2500 })
+      await updateDocument(path, {
+        users: arrayUnion(item)
+      })
+
+      toast.success('Solicitud Actualizada Exitosamente', { duration: 2500 })
       getItems()
       setIsDialogOpen(false)
       form.reset()
-
-      setImage('')
+      
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message, { duration: 2500 })
-      } else {
-        toast.error('Ocurrió un error desconocido', { duration: 2500 })
-      }
+      toast.error(error instanceof Error ? error.message : 'Ocurrió un error desconocido', { duration: 2500 })
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const updateCategoryInDB = async (item: Category) => {
-    const path = `categorys/${itemToUpdate?.id}`
-    setIsLoading(true)
-    try {
-      if (itemToUpdate?.image.url !== item.image.url) {
-        const base64 = item.image.url
-        const imagePath = item.image.path
-        const imageUrl = await uploadBase64(imagePath, base64)
-
-        item.image.url = imageUrl
-      }
-      await updateDocument(path, item)
-      toast.success('Categoria Actualizada Exitosamente', { duration: 2500 })
-      getItems()
-      setIsDialogOpen(false)
-      form.reset()
-
-      setImage('')
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message, { duration: 2500 })
-      } else {
-        toast.error('Ocurrió un error desconocido', { duration: 2500 })
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  };
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className='sm:max-w-[425px]'>
+      <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {itemToUpdate ? 'Editar Categoria' : 'Crear Categoria'}
-          </DialogTitle>
-          <DialogDescription>
-            Gestiona tu Categoria con la siguiente información.
-          </DialogDescription>
+          <DialogTitle>{itemToUpdate ? 'Editar Solicitud' : 'Crear Solicitud'}</DialogTitle>
+          <DialogDescription>Gestiona la solicitud con la siguiente información.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className='grid gap-2'>
-            <div className='mb-3'>
-              <Label htmlFor='image'>Imagen</Label>
-              {image ? (
-                <div className='text-center'>
-                  <Image
-                    width={1000}
-                    height={1000}
-                    src={image}
-                    alt='item-image'
-                    className='w-[50%] m-auto'
-                  />
-                  <Button
-                    className='mt-3'
-                    variant={'destructive'}
-                    type='button'
-                    onClick={() => handleImage('')}
-                    disabled={isLoading}
-                  >
-                    Remover Imagen
-                  </Button>
-                </div>
-              ) : (
-                <DragAndDropImage handleImage={handleImage} />
-              )}
+          <div className="grid gap-2">
+            {/* Name */}
+            <div className="mb-3">
+              <Label htmlFor="name">Nombre</Label>
+              <Input {...register("name")} id="name" placeholder="Nombre de la solicitud" />
+              {errors.name && <p className="form-error">{errors.name.message}</p>}
             </div>
-            <div className='mb-3'>
-              <Label htmlFor='name'>Nombre</Label>
-              <Input
-                {...register('name')}
-                id='name'
-                placeholder='nombre categoria'
-                type='text'
-                autoComplete='name'
+
+            {/* Description */}
+            <div className="mb-3">
+              <Label htmlFor="description">Descripción</Label>
+              <Input {...register("description")} id="description" placeholder="Descripción de la solicitud" />
+              {errors.description && <p className="form-error">{errors.description.message}</p>}
+            </div>
+
+            {/* Type */}
+            <div className="mb-3">
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione un tipo de solicitud" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value={TipoSolicitud.SIVIGILA}>SIVIGILA</SelectItem>
+                        <SelectItem value={TipoSolicitud.PROTOCOLO}>PROTOCOLO</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
               />
-              <p className='form-error'>{errors.name?.message}</p>
+              {errors.type && <p className="form-error">{errors.type.message}</p>}
             </div>
-            {itemToUpdate && (
-              <div className='mb-3'>
-                <SwitchStateItem checked={state} onChange={setState} />
+
+            {/* Conditional Subtype (only displayed if a type is selected) */}
+            {selectedType && (
+              <div className="mb-3">
+                <Controller
+                  name="subtype"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione un subtipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {selectedType === TipoSolicitud.SIVIGILA && (
+                            <>
+                              <SelectItem value={SubtipoSivigila.SUBTIPO_1}>Sivigila 1</SelectItem>
+                              <SelectItem value={SubtipoSivigila.SUBTIPO_2}>Sivigila 2</SelectItem>
+                            </>
+                          )}
+                          {selectedType === TipoSolicitud.PROTOCOLO && (
+                            <>
+                              <SelectItem value={SubtipoProtocolo.SUBTIPO_A}>Protocolo A</SelectItem>
+                              <SelectItem value={SubtipoProtocolo.SUBTIPO_B}>Protocolo B</SelectItem>
+                            </>
+                          )}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.subtype && <p className="form-error">{errors.subtype.message}</p>}
               </div>
             )}
+
+            {/* Estado */}
+            <div className="mb-3">
+              <Controller
+                name="state"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione el estado de la solicitud" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value={EstadoSolicitud.PENDIENTE}>Pendiente</SelectItem>
+                        <SelectItem value={EstadoSolicitud.ASIGNADA}>Asignada</SelectItem>
+                        <SelectItem value={EstadoSolicitud.FINALIZADA}>Finalizada</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.state && <p className="form-error">{errors.state.message}</p>}
+            </div>
           </div>
           <DialogFooter>
-            <Button type='submit' disabled={isLoading}>
-              {isLoading && <LoaderCircle className='mr-2 h-4 animate-spin' />}
+            <Button type="submit">
+              {isLoading && <LoaderCircle className="mr-2 h-4 animate-spin" />}
               {itemToUpdate ? 'Actualizar' : 'Crear'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

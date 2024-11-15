@@ -32,8 +32,8 @@ import { SwitchStateItem } from './switch-state-item'
 import { User } from '@/interfaces/user.interface'
 import { ItemImage } from '@/interfaces/item-image.interface'
 import DragAndDropImage from '@/components/drag-and-drop-image'
-import { createUser, signOutAccount, updateDocument, uploadBase64 } from '@/lib/firebase'
-import { arrayRemove, arrayUnion } from 'firebase/firestore'
+import { createUser, db, signOutAccount, updateDocument, uploadBase64 } from '@/lib/firebase'
+import { arrayRemove, arrayUnion, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { getAuth, sendEmailVerification } from 'firebase/auth'
 import { DropdownMenuDemo } from './dropdownVerification';
 import { Switch } from '@/components/ui/switch';
@@ -161,46 +161,66 @@ export function CreateUpdateItem({
       const { password, ...itemWithoutPassword } = item;
       updateCategoryInDB(itemWithoutPassword as User);
     } else {
-      createCategoryInDB(item as User);
+      createUserInDB(item as User);
     }
     
   };
 
-  const createCategoryInDB = async (item: User) => {
-    const path = `usuarios/users`
-    setIsLoading(true)
+  const createUserInDB = async (item: User) => {
+    const path = `usuarios/users`;
+    setIsLoading(true);
+    
     try {
-      const auth = getAuth()
+      // Crea el usuario en Firebase Authentication
       const userCredential = await createUser({
         email: item.email,
         password: item.password!
-      })
-      const userId = userCredential.user.uid
-      const base64 = item.image.url
-      const imagePath = item.image.path || `${userId}/${Date.now()}`
-      const imageUrl = await uploadBase64(imagePath, base64)
-
-      item.image.url = imageUrl
-      item.uid = userId
-      delete item.password
-
-      await updateDocument(path, {
-        users: arrayUnion(item)
-      })
-
-      await sendVerificationEmail(userCredential.user)
-      toast.success("Usuario Creado Exitosamente", { duration: 2500 })
-      getItems()
-      setIsDialogOpen(false)
-      form.reset()
-      setImage("")
+      });
+      const userId = userCredential.user.uid;
+  
+      // Si el usuario tiene una imagen, sube la imagen y actualiza la URL
+      const base64 = item.image.url;
+      const imagePath = item.image.path || `${userId}/${Timestamp.now()}`;
+      const imageUrl = await uploadBase64(imagePath, base64);
+      item.image.url = imageUrl;
+  
+      // Asigna el UID, elimina la contraseña y agrega la fecha de creación
+      item.uid = userId;
+      delete item.password;
+      item.createdAt = Timestamp.now();
+  
+      // Referencia al documento único en Firestore
+      const docRef = doc(db, path);
+      
+      // Verificar si el documento ya existe en Firestore
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        // Si el documento existe, usa updateDocument para agregar el usuario al array `users`
+        await updateDocument(path, {
+          users: arrayUnion(item)
+        });
+      } else {
+        // Si el documento no existe, usa setDoc para crearlo con un array inicial que contenga el usuario
+        await setDoc(docRef, {
+          users: [item] // Crea el array `users` con el primer usuario
+        });
+      }
+  
+      // Enviar correo de verificación
+      await sendVerificationEmail(userCredential.user);
+      toast.success("Usuario Creado Exitosamente", { duration: 2500 });
+      getItems(); // Refresca la lista de usuarios
+      setIsDialogOpen(false);
+      form.reset(); // Resetea el formulario
+      setImage(""); // Resetea la imagen
+  
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Ocurrió un error desconocido", { duration: 2500 })
+      toast.error(error instanceof Error ? error.message : "Ocurrió un error desconocido", { duration: 2500 });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
+  };
   return (
     <Dialog open={isDialogOpen} onOpenChange={(open) => {
       setIsDialogOpen(open);
