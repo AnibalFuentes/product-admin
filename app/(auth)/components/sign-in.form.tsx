@@ -51,6 +51,8 @@ const SignInForm = () => {
           "Por favor verifica tu correo electrónico antes de iniciar sesión.",
           { duration: 3000 }
         );
+        
+        signOutAccount();
 
         return;
       }
