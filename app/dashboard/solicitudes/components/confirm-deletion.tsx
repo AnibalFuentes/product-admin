@@ -10,11 +10,12 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { User } from '@/interfaces/user.interface' // Cambia la interfaz a User
+import { Solicitud } from '../../../../interfaces/solicitud.interface';
 
 interface ConfirmDeletionProps {
   children: React.ReactNode
-  deleteUserInDB: (item: User) => Promise<void> // Cambia la función a deleteUserInDB
-  item: User // Cambia el tipo de item a User
+  deleteUserInDB: (item: Solicitud) => Promise<void> // Cambia la función a deleteUserInDB
+  item: Solicitud // Cambia el tipo de item a User
 }
 
 export function ConfirmDeletion ({

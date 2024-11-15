@@ -5,14 +5,14 @@ import PageTitle from '@/components/PageTitle'
 
 
 export const metadata: Metadata = {
-  title: 'Usuarios - Solicitudes Admin',
+  title: 'Solicitudes - Solicitudes Admin',
   description: 'Sign in to your account'
 }
 
 const Users = () => {
   return (
     <>
-    <PageTitle title='Usuarios' />
+    <PageTitle title='Solicitudes' />
     <div className=" w-full"> {/* Sin márgenes adicionales */}
         <Items />
       </div>

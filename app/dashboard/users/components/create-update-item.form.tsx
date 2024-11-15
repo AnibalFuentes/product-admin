@@ -89,19 +89,14 @@ export function CreateUpdateItem({
   const { register, handleSubmit, formState, setValue, control } = form
   const { errors } = formState
 
-  const handleImage = (url: string) => {
-    const path = itemToUpdate ? itemToUpdate.image.path : `${user?.uid}/${Date.now()}`
-    setValue('image', { url, path })
-    setImage(url)
-  }
-
+  
   useEffect(() => {
     if (itemToUpdate) {
       setImage(itemToUpdate.image.url)
       setState(itemToUpdate.state)
     }
   }, [itemToUpdate])
-
+  
   const sendVerificationEmail = async (currentUser: FirebaseUser) => {
     try {
       await sendEmailVerification(currentUser);
@@ -123,8 +118,13 @@ export function CreateUpdateItem({
     }
   };
 
+  const handleImage = (url: string) => {
+    const path = itemToUpdate ? itemToUpdate.image.path : `${user?.uid}/${Date.now()}`
+    setValue('image', { url, path })
+    setImage(url)
+  }
   const updateCategoryInDB = async (item: User) => {
-    const path = `usuarios/users`
+    const path = 'usuarios/users'
     setIsLoading(true)
     try {
       if (itemToUpdate?.image.url !== item.image.url) {

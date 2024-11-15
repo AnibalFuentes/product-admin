@@ -17,6 +17,7 @@ import {
 import { LayoutDashboard, Speech, Users2 } from "lucide-react"
 import { signOutAccount } from "@/lib/firebase"
 import { useUser } from "@/hooks/use-user"
+import Link from "next/link"
 
 const navData = [
   {
@@ -68,10 +69,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     isActive={item.isActive}
                     className={item.isActive ? "bg-slate text-white" : ""}
                   >
-                    <a href={item.url}>
-                      {item.icon}
+                    <Link href={item.url}>
+                    {item.icon}
                       {item.title}
-                    </a>
+                    </Link>
+                    
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

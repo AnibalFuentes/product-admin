@@ -28,6 +28,7 @@ import { EstadoSolicitud, Solicitud, TipoSolicitud, SubtipoSivigila, SubtipoProt
 import { db, updateDocument } from '@/lib/firebase';
 import { arrayRemove, arrayUnion, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
+import { Textarea } from '@/components/ui/textarea';
 
 interface CreateUpdateItemProps {
   children: React.ReactNode;
@@ -63,29 +64,25 @@ export function CreateUpdateItem({
       subtype: '',
       state: EstadoSolicitud.PENDIENTE
     },
-    mode: "onChange" // Enables form validation on each input change
   });
 
-  const { register, handleSubmit, formState, setValue, control, watch } = form;
+  const { register, handleSubmit, formState, control, watch } = form;
   const { errors } = formState;
 
   const selectedType = watch("type");
 
-  useEffect(() => {
-    if (itemToUpdate) {
-      setState(itemToUpdate.state);
-    }
-  }, [itemToUpdate]);
+
+  
 
   const onSubmit = async (item: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
       if (itemToUpdate) {
-        await updateSolicitudInDB(itemToUpdate);
+        await updateSolicitudInDB(item as Solicitud);
       } else {
         await createSolicitudInDB(item as Solicitud);
       }
-      toast.success('Solicitud procesada exitosamente');
+      // toast.success('Solicitud procesada exitosamente');
       getItems();
       setIsDialogOpen(false);
       form.reset();
@@ -135,29 +132,35 @@ export function CreateUpdateItem({
   };
 
   const updateSolicitudInDB = async (item: Solicitud) => {
-     const path = `solicitudes/solicitudes`
-    setIsLoading(true)
+    const path = 'solicitudes/solicitudes';
+    setIsLoading(true);
+
+  
     try {
-     
+    
+      // Primero eliminamos la versión anterior del array
       await updateDocument(path, {
-        users: arrayRemove(itemToUpdate)
-      })
-
+        solicitudes: arrayRemove(itemToUpdate)
+      });
+  
+      // Luego agregamos la versión actualizada al array
       await updateDocument(path, {
-        users: arrayUnion(item)
-      })
-
-      toast.success('Solicitud Actualizada Exitosamente', { duration: 2500 })
-      getItems()
-      setIsDialogOpen(false)
-      form.reset()
-      
+        solicitudes: arrayUnion(item)
+      });
+  
+      toast.success('Solicitud actualizada exitosamente', { duration: 2500 });
+      getItems(); // Refresca la lista de solicitudes
+      setIsDialogOpen(false);
+      form.reset(); // Resetea el formulario
+  
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'Ocurrió un error desconocido', { duration: 2500 })
+      toast.error(error instanceof Error ? error.message : 'Ocurrió un error desconocido', { duration: 2500 });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   };
+  
+  
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -179,7 +182,8 @@ export function CreateUpdateItem({
             {/* Description */}
             <div className="mb-3">
               <Label htmlFor="description">Descripción</Label>
-              <Input {...register("description")} id="description" placeholder="Descripción de la solicitud" />
+              <Textarea {...register("description")} id="description" placeholder="Descripción de la solicitud"/>
+              
               {errors.description && <p className="form-error">{errors.description.message}</p>}
             </div>
 

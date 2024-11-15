@@ -9,7 +9,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { User } from '@/interfaces/user.interface'
-import { Ban, CheckCircle, LayoutList, SquarePen, Trash2 } from 'lucide-react'
+import { Ban, CheckCircle, ClockAlert, LayoutList, SquarePen, Trash2, UserSearch } from 'lucide-react'
 import Image from 'next/image'
 import { CreateUpdateItem } from './create-update-item.form'
 import { ConfirmDeletion } from './confirm-deletion'
@@ -35,10 +35,10 @@ export function TableView ({
       <Table className='w-full'>
         <TableHeader>
           <TableRow>
-            <TableHead className='text-center w-[100px]'>Imagen</TableHead>
+            
             <TableHead className='text-center'>Nombre</TableHead>
-            <TableHead className='text-center'>Unidad</TableHead>
-            <TableHead className='text-center'>Rol</TableHead>
+            <TableHead className='text-center'>Descripcion</TableHead>
+            <TableHead className='text-center'>tipo</TableHead>
             <TableHead className='text-center'>Estado</TableHead>
             <TableHead className='text-center w-[250px]'>Acciones</TableHead>
           </TableRow>
@@ -48,38 +48,25 @@ export function TableView ({
             items &&
             items.map(item => (
               <TableRow key={item.uid}>
-                <TableCell>
-                  <Image
-                    className='object-cover w-16 h-16 rounded-full'
-                    alt={item.name}
-                    src={item.image.url}
-                    width={1000}
-                    height={1000}
-                  />
-                </TableCell>
+                
                 <TableCell className='font-semibold text-center'>{item.name}</TableCell>
-                <TableCell className='text-center'>{item.unit}</TableCell>
-                <TableCell className='text-center'>{item.role}</TableCell>
+                <TableCell className='text-center'>{item.description}</TableCell>
+                <TableCell className='text-center'>{item.type} {item.subtype}</TableCell>
                 <TableCell className='text-center'>
-                  {item.state ? (
-                    <div>
+                <div>
                       <Badge
-                        className='border border-solid border-green-600 bg-green-50'
+                        className={`border border-solid ${ item.state==='pendiente'?'border-orange-600 bg-orange-200':item.state==='asignada'?'border-blue-600 bg-blue-50':'border-green-600 bg-green-50'}`}
                         variant={'outline'}
                       >
-                        <CheckCircle color='green' className='mr-1' /> Activo
+                        {item.state==='pendiente'?<ClockAlert color='orange' className='mr-1' />:item.state==='asignada'?<UserSearch color='blue' className='mr-1' />:<CheckCircle color='green' className='mr-1' />
+
+                      }
+                      {
+                        item.state==='pendiente'?'Pendiente':item.state==='asignada'?'Asignada':'Finalizada'
+                      }
+                        
                       </Badge>
                     </div>
-                  ) : (
-                    <div>
-                      <Badge
-                        className='border border-solid border-red-600 bg-red-50'
-                        variant={'outline'}
-                      >
-                        <Ban color='red' className='mr-1' /> Inactivo
-                      </Badge>
-                    </div>
-                  )}
                 </TableCell>
                 <TableCell className='text-center'>
                   <CreateUpdateItem getItems={getItems} itemToUpdate={item}>

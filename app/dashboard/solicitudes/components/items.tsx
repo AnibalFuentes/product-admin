@@ -42,13 +42,13 @@ const Items = () => {
   }
 
   //================ELIMINAR USUARIO DE FIRESTORE
-  const deleteUserInDB = async (item: Solicitud) => {
+  const deleteSolictudInDB = async (item: Solicitud) => {
     const path = `solicitudes/solicitudes`
     setIsLoading(true)
     try {
       
       await updateDocument(path, {
-        users: arrayRemove(item) // Remover el usuario del array en Firestore
+        solicitudes: arrayRemove(item) // Remover el usuario del array en Firestore
       })
       toast.success('Usuario Eliminado Exitosamente 🗑️', { duration: 2500 })
 
@@ -72,7 +72,7 @@ const Items = () => {
   return (
     <div className="w-full"> {/* Asegúrate de que tenga w-full */}
       <div className="flex justify-between m-4 mb-8">
-        <h1 className="text-2xl ml-1">Usuarios</h1>
+        <h1 className="text-2xl ml-1">Solicitudes</h1>
         <CreateUpdateItem getItems={getItems}>
           <Button className="px-6">
             Crear
@@ -81,7 +81,7 @@ const Items = () => {
         </CreateUpdateItem>
       </div>
       <TableView
-        deleteUserInDB={deleteUserInDB}
+        deleteUserInDB={deleteSolictudInDB}
         getItems={getItems}
         items={items}
         isLoading={isLoading}

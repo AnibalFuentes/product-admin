@@ -38,14 +38,9 @@ export default function RootLayout ({
       <body
       // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='ligth'
-          enableSystem
-          disableTransitionOnChange
-        >
+      
           {children}
-        </ThemeProvider>
+        
         <Toaster />
       </body>
     </html>
