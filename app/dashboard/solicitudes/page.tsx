@@ -13,7 +13,7 @@ const Users = () => {
   return (
     <>
     <PageTitle title='Solicitudes' />
-    <div className=" w-full"> {/* Sin márgenes adicionales */}
+    <div className=" w-full "> {/* Sin márgenes adicionales */}
         <Items />
       </div>
     </>

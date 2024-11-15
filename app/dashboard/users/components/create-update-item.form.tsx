@@ -219,6 +219,7 @@ export function CreateUpdateItem({
       // Enviar correo de verificación
       await sendVerificationEmail(userCredential.user);
       toast.success("Usuario Creado Exitosamente", { duration: 2500 });
+      await signOutAccount()
       getItems(); // Refresca la lista de usuarios
       setIsDialogOpen(false);
       form.reset(); // Resetea el formulario

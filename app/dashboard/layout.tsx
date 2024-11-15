@@ -31,7 +31,7 @@ export default function DashboardLayout ({
         {!isMobile ?<SidebarTogglePosition />:<SidebarTrigger/>} {/* Añadido un componente para el Trigger */}
         
         <main className="flex-1 flex justify-center">
-          <div className="p-8 w-full max-w-5xl">
+          <div className="p-8 w-full px-20 ">
             {children}
           </div>
         </main>

@@ -41,8 +41,23 @@ const ListView = ({
             <div className="flex items-center w-full">
               <div className="flex-grow">
                 <h3 className="font-semibold">{item.name}</h3>
-                <p className="text-sm text-gray-500">{item.description}</p>
-                <p className="text-sm text-gray-500">{item.type} {item.subtype}</p>
+                {/* <p className="text-sm text-gray-500">{item.description}</p> */}
+                <Badge
+                  className="border border-solid border-slate-600 bg-slate-50 "
+                  variant="outline"
+                >
+                  {item.type}
+                  
+                </Badge>
+                
+                <Badge
+                  className="border border-solid border-slate-600 bg-slate-50 "
+                  variant="outline"
+                >
+                  {item.subtype}
+                  
+                </Badge>
+                {/* <p className="text-sm text-gray-500">{item.type} {item.subtype}</p> */}
               </div>
               <div>
                 <Badge
