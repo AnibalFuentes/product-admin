@@ -86,12 +86,12 @@ const Items = () => {
         items={items}
         isLoading={isLoading}
       />
-      {/* <ListView
+      <ListView
         getItems={getItems}
-        deleteUserInDB={deleteUserInDB}
+        deleteUserInDB={deleteSolictudInDB}
         items={items}
         isLoading={isLoading}
-      /> */}
+      />
     </div>
   )
 }
