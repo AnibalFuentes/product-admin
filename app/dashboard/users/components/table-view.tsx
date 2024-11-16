@@ -150,11 +150,11 @@ export function TableView({
             Limpiar Filtros
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={clearFilters}
-              className="ml-2 p-0"
+              className="ml-2 rounded-full hover:bg-transparent size-3"
             >
-              <X className="w-3 h-3" />
+              <X className="" />
             </Button>
           </Badge>
         )}
@@ -165,7 +165,69 @@ export function TableView({
           <TableRow>
             <TableHead className="text-center w-[100px]">Imagen</TableHead>
             <TableHead className="text-center">Nombre</TableHead>
-            {/* Otros encabezados y selectores de filtros aquí */}
+            <TableHead className="text-center">
+              <div className="flex items-center">
+                Unidad
+                <Select
+                  onValueChange={(value) =>
+                    setUnitFilter(value as "all" | "UI" | "UPGD")
+                  }
+                  value={unitFilter}
+                >
+                  <SelectTrigger className="w-[100px] ml-2 ">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="UI">UI</SelectItem>
+                    <SelectItem value="UPGD">UPGD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TableHead>
+            <TableHead className="text-center">
+              <div className="flex items-center">
+                Rol
+                <Select
+                  onValueChange={(value) =>
+                    setRoleFilter(
+                      value as "all" | "ADMIN" | "OPERARIO" | "USUARIO"
+                    )
+                  }
+                  value={roleFilter}
+                >
+                  <SelectTrigger className="w-[100px] ml-2">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="ADMIN">ADMIN</SelectItem>
+                    <SelectItem value="OPERARIO">OPERARIO</SelectItem>
+                    <SelectItem value="USUARIO">USUARIO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TableHead>
+            <TableHead className="text-center">
+              <div className="flex items-center">
+                Estado
+                <Select
+                  onValueChange={(value) =>
+                    setStatusFilter(value as "all" | "active" | "inactive")
+                  }
+                  value={statusFilter}
+                >
+                  <SelectTrigger className="w-[100px] ml-2">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Activos</SelectItem>
+                    <SelectItem value="inactive">Inactivos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TableHead>
             <TableHead className="text-center w-[250px]">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -258,3 +320,9 @@ export function TableView({
     </div>
   );
 }
+
+
+
+
+//?comment
+
