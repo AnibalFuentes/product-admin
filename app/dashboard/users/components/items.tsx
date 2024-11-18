@@ -89,7 +89,7 @@ const Items = () => {
   return (
     <div className="w-full">
       <div className="flex justify-between m-4 mb-8 items-center">
-        <div className="relative flex items-center w-64"> {/* Controla el ancho aquí */}
+        <div className=" flex items-center w-64"> {/* Controla el ancho aquí */}
           <Input
             type="text"
             placeholder="🔎 Buscar usuarios..."

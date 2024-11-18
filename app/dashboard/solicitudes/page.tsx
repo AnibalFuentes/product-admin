@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 const Users = () => {
   return (
     <>
+    
     <PageTitle title='Solicitudes' />
     <div className=" w-full "> {/* Sin márgenes adicionales */}
         <Items />

@@ -82,7 +82,7 @@ export function ProfileDropdown () {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant='outline'>
+        <Button variant='outline' className='mx-4'>
           <span className='mr-2'>Cuenta</span>
 
           {image ? (
