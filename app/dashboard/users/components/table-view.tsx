@@ -251,11 +251,11 @@ export function TableView({
                 <TableCell className="text-center">{item.role}</TableCell>
                 <TableCell className="text-center">
                   {item.state ? (
-                    <Badge className="border border-green-600 bg-green-50" variant="outline">
+                    <Badge className="border border-green-600" variant="outline">
                       <CheckCircle color="green" className="mr-1" /> Activo
                     </Badge>
                   ) : (
-                    <Badge className="border border-red-600 bg-red-50" variant="outline">
+                    <Badge className="border border-red-600" variant="outline">
                       <Ban color="red" className="mr-1" /> Inactivo
                     </Badge>
                   )}

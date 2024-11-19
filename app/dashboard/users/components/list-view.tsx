@@ -176,20 +176,20 @@ const ListView = ({
               <div className="ml-6">
                 <h3 className="font-semibold">{item.name}</h3>
                 <Badge
-                  className="border border-solid border-slate-900 bg-slate-50 text-sm mb-1 mr-16"
+                  className="border border-solid border-slate-900  text-sm mb-1 mr-16"
                   variant="outline"
                 >
                   {item.email}
                 </Badge>
                <div>
                <Badge
-                  className="border border-solid border-blue-600 bg-blue-50 text-sm"
+                  className="border border-solid border-blue-600  text-sm"
                   variant="outline"
                 >
                   {item.role}
                 </Badge>
                 <Badge
-                  className="border border-solid border-slate-600 bg-slate-50 text-sm ml-1"
+                  className="border border-solid border-slate-600  text-sm ml-1"
                   variant="outline"
                 >
                   {item.unit}
@@ -200,14 +200,14 @@ const ListView = ({
             <div className="flex items-center space-x-4 ">
               {item.state ? (
                 <Badge
-                  className="border border-solid border-green-600 bg-green-50 "
+                  className="border border-solid border-green-600  "
                   variant="outline"
                 >
                   <CheckCircle color="green " />
                 </Badge>
               ) : (
                 <Badge
-                  className="border border-solid border-red-600 bg-red-50"
+                  className="border border-solid border-red-600 "
                   variant="outline"
                 >
                   <Ban color="red" />

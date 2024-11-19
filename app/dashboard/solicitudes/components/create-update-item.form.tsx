@@ -16,6 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoaderCircle } from "lucide-react";
@@ -42,6 +48,11 @@ import {
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "@/hooks/use-user";
+import { User } from "@/interfaces/user.interface";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 
 interface CreateUpdateItemProps {
   children: React.ReactNode;
@@ -54,8 +65,12 @@ export function CreateUpdateItem({
   itemToUpdate,
   getItems,
 }: CreateUpdateItemProps) {
+  const user = useUser();
+
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [isOperarioDialogOpen, setIsOperarioDialogOpen] = useState(false);
   const [state, setState] = useState(
     itemToUpdate?.state || EstadoSolicitud.PENDIENTE
   );
@@ -73,6 +88,9 @@ export function CreateUpdateItem({
     }),
     subtype: z.string().nonempty({ message: "Seleccione un subtipo" }),
     state: z.nativeEnum(EstadoSolicitud),
+    answer: z.string().optional(),
+    answerAt: z.any().optional(),
+    operario: z.any().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -94,18 +112,66 @@ export function CreateUpdateItem({
 
   const onSubmit = async (item: z.infer<typeof formSchema>) => {
     setIsLoading(true);
+
     try {
+      // Si la solicitud tiene respuesta, cambia el estado a FINALIZADA y asigna answerAt
+      if (
+        itemToUpdate &&
+        (user?.role === "OPERARIO" || user?.role === "ADMIN") &&
+        item.answer
+      ) {
+        item.state = EstadoSolicitud.FINALIZADA;
+        item.answerAt = Timestamp.now(); // Agregar la marca de tiempo
+
+        // Si el usuario es ADMIN, asignar los datos del usuario al operario
+        if (user?.role === "ADMIN") {
+          item.operario = user;
+        }
+      }
+
       if (itemToUpdate) {
         await updateSolicitudInDB(item as Solicitud);
       } else {
         await createSolicitudInDB(item as Solicitud);
       }
-      // toast.success('Solicitud procesada exitosamente');
-      getItems();
+
+      getItems(); // Refresca la lista de solicitudes
       setIsDialogOpen(false);
       form.reset();
     } catch (error) {
       toast.error("Ocurrió un error al procesar la solicitud");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateSolicitudInDB = async (item: Solicitud) => {
+    const path = "solicitudes/solicitudes";
+    setIsLoading(true);
+
+    try {
+      // Asegúrate de que el campo `user` se conserve
+      item.user = itemToUpdate?.user as User;
+
+      // Elimina la versión anterior del array
+      await updateDocument(path, {
+        solicitudes: arrayRemove(itemToUpdate),
+      });
+
+      // Agrega la versión actualizada al array
+      await updateDocument(path, {
+        solicitudes: arrayUnion(item),
+      });
+
+      toast.success("Solicitud actualizada exitosamente", { duration: 2500 });
+      getItems(); // Refresca la lista de solicitudes
+      setIsDialogOpen(false);
+      form.reset(); // Resetea el formulario
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Ocurrió un error desconocido",
+        { duration: 2500 }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -119,6 +185,8 @@ export function CreateUpdateItem({
       // Genera un UID único para la solicitud usando uuidv4
       item.uid = uuidv4();
       item.createdAt = Timestamp.now(); // Agrega un timestamp de creación
+      item.user = user as User;
+      item.state = EstadoSolicitud.PENDIENTE;
 
       // Referencia al documento único que contiene el array de usuarios
       const docRef = doc(db, path);
@@ -152,195 +220,377 @@ export function CreateUpdateItem({
     }
   };
 
-  const updateSolicitudInDB = async (item: Solicitud) => {
-    const path = "solicitudes/solicitudes";
-    setIsLoading(true);
-
-    try {
-      // Primero eliminamos la versión anterior del array
-      await updateDocument(path, {
-        solicitudes: arrayRemove(itemToUpdate),
-      });
-
-      // Luego agregamos la versión actualizada al array
-      await updateDocument(path, {
-        solicitudes: arrayUnion(item),
-      });
-
-      toast.success("Solicitud actualizada exitosamente", { duration: 2500 });
-      getItems(); // Refresca la lista de solicitudes
-      setIsDialogOpen(false);
-      form.reset(); // Resetea el formulario
-    } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Ocurrió un error desconocido",
-        { duration: 2500 }
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {itemToUpdate ? "Editar Solicitud" : "Crear Solicitud"}
+            {itemToUpdate && user?.role === "USUARIO"
+              ? "Editar Solicitud"
+              : user?.role === "OPERARIO" || user?.role === "ADMIN"
+              ? "Responder Solicitud"
+              : "Crear Solicitud"}
           </DialogTitle>
           <DialogDescription>
             Gestiona la solicitud con la siguiente información.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
-            {/* Name */}
-            <div className="mb-3">
-              <Label htmlFor="name">Nombre</Label>
-              <Input
-                {...register("name")}
-                id="name"
-                placeholder="Nombre de la solicitud"
-              />
-              {errors.name && (
-                <p className="form-error">{errors.name.message}</p>
-              )}
-            </div>
 
-            {/* Description */}
-            <div className="mb-3">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                {...register("description")}
-                id="description"
-                placeholder="Descripción de la solicitud"
-              />
+        <Card>
+          <CardContent>
+            <Accordion type="single" collapsible>
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="font-semibold">
+                  <Badge>Solicitud</Badge>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <form onSubmit={handleSubmit(onSubmit)}>
+                    <div className="grid gap-2">
+                      {/* Nombre */}
+                      <div className="mb-3">
+                        <Label htmlFor="name">Nombre</Label>
+                        <Input
+                          {...register("name")}
+                          id="name"
+                          placeholder="Nombre de la solicitud"
+                          readOnly={
+                            user?.role === "ADMIN" || user?.role === "OPERARIO"
+                          } // Solo lectura
+                        />
+                        {errors.name && (
+                          <p className="form-error">{errors.name.message}</p>
+                        )}
+                      </div>
 
-              {errors.description && (
-                <p className="form-error">{errors.description.message}</p>
-              )}
-            </div>
+                      {/* Descripción */}
+                      <div className="mb-3">
+                        <Label htmlFor="description">Descripción</Label>
+                        <Textarea
+                          {...register("description")}
+                          id="description"
+                          placeholder="Descripción de la solicitud"
+                          readOnly={
+                            user?.role === "ADMIN" || user?.role === "OPERARIO"
+                          } // Solo lectura
+                        />
+                        {errors.description && (
+                          <p className="form-error">
+                            {errors.description.message}
+                          </p>
+                        )}
+                      </div>
 
-            {/* Type */}
-            <div className="mb-3">
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    onValueChange={(value) => field.onChange(value)}
-                    value={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione un tipo de solicitud" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value={TipoSolicitud.SIVIGILA}>
-                          SIVIGILA
-                        </SelectItem>
-                        <SelectItem value={TipoSolicitud.PROTOCOLO}>
-                          PROTOCOLO
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.type && (
-                <p className="form-error">{errors.type.message}</p>
-              )}
-            </div>
-
-            {/* Conditional Subtype (only displayed if a type is selected) */}
-            {selectedType && (
-              <div className="mb-3">
-                <Controller
-                  name="subtype"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      onValueChange={(value) => field.onChange(value)}
-                      value={field.value}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione un subtipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {selectedType === TipoSolicitud.SIVIGILA && (
-                            <>
-                              <SelectItem value={SubtipoSivigila.SUBTIPO_1}>
-                                Sivigila 1
-                              </SelectItem>
-                              <SelectItem value={SubtipoSivigila.SUBTIPO_2}>
-                                Sivigila 2
-                              </SelectItem>
-                            </>
+                      {/* Tipo */}
+                      <div className="mb-3">
+                        <Controller
+                          name="type"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              onValueChange={(value) => field.onChange(value)}
+                              value={field.value}
+                              disabled={
+                                user?.role === "ADMIN" ||
+                                user?.role === "OPERARIO"
+                              } // Solo lectura
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleccione un tipo de solicitud" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  <SelectItem value={TipoSolicitud.SIVIGILA}>
+                                    SIVIGILA
+                                  </SelectItem>
+                                  <SelectItem value={TipoSolicitud.PROTOCOLO}>
+                                    PROTOCOLO
+                                  </SelectItem>
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
                           )}
-                          {selectedType === TipoSolicitud.PROTOCOLO && (
-                            <>
-                              <SelectItem value={SubtipoProtocolo.SUBTIPO_A}>
-                                Protocolo 1
-                              </SelectItem>
-                              <SelectItem value={SubtipoProtocolo.SUBTIPO_B}>
-                                Protocolo 2
-                              </SelectItem>
-                            </>
-                          )}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.subtype && (
-                  <p className="form-error">{errors.subtype.message}</p>
-                )}
-              </div>
-            )}
+                        />
+                        {errors.type && (
+                          <p className="form-error">{errors.type.message}</p>
+                        )}
+                      </div>
 
-            {/* Estado */}
-            <div className="mb-3">
-              <Controller
-                name="state"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    onValueChange={(value) => field.onChange(value)}
-                    value={field.value}
+                      {/* Subtipo Condicional */}
+                      {selectedType && (
+                        <div className="mb-3">
+                          <Controller
+                            name="subtype"
+                            control={control}
+                            render={({ field }) => (
+                              <Select
+                                onValueChange={(value) => field.onChange(value)}
+                                value={field.value}
+                                disabled={
+                                  user?.role === "ADMIN" ||
+                                  user?.role === "OPERARIO"
+                                } // Solo lectura
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleccione un subtipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectGroup>
+                                    {selectedType ===
+                                      TipoSolicitud.SIVIGILA && (
+                                      <>
+                                        <SelectItem
+                                          value={SubtipoSivigila.SUBTIPO_1}
+                                        >
+                                          Sivigila 1
+                                        </SelectItem>
+                                        <SelectItem
+                                          value={SubtipoSivigila.SUBTIPO_2}
+                                        >
+                                          Sivigila 2
+                                        </SelectItem>
+                                      </>
+                                    )}
+                                    {selectedType ===
+                                      TipoSolicitud.PROTOCOLO && (
+                                      <>
+                                        <SelectItem
+                                          value={SubtipoProtocolo.SUBTIPO_A}
+                                        >
+                                          Protocolo 1
+                                        </SelectItem>
+                                        <SelectItem
+                                          value={SubtipoProtocolo.SUBTIPO_B}
+                                        >
+                                          Protocolo 2
+                                        </SelectItem>
+                                      </>
+                                    )}
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                          {errors.subtype && (
+                            <p className="form-error">
+                              {errors.subtype.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Estado */}
+                      {/* {user?.role === "ADMIN" && (
+                        <div className="mb-3">
+                          <Controller
+                            name="state"
+                            control={control}
+                            render={({ field }) => (
+                              <Select
+                                onValueChange={(value) => field.onChange(value)}
+                                value={field.value}
+                                disabled={user?.role === "OPERARIO"} // Deshabilitar si es OPERARIO
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleccione el estado de la solicitud" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectGroup>
+                                    <SelectItem
+                                      value={EstadoSolicitud.PENDIENTE}
+                                    >
+                                      Pendiente
+                                    </SelectItem>
+                                    <SelectItem
+                                      value={EstadoSolicitud.ASIGNADA}
+                                    >
+                                      Asignada
+                                    </SelectItem>
+                                    <SelectItem
+                                      value={EstadoSolicitud.FINALIZADA}
+                                    >
+                                      Finalizada
+                                    </SelectItem>
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                          {errors.state && (
+                            <p className="form-error">{errors.state.message}</p>
+                          )}
+                        </div>
+                      )} */}
+
+                      {/* Answer (Solo para Edición y Roles Permitidos) */}
+                      {itemToUpdate &&
+                        (user?.role === "OPERARIO" ||
+                          user?.role === "ADMIN") && (
+                          <div className="mb-3">
+                            <Label htmlFor="answer">Respuesta</Label>
+                            <Textarea
+                              {...register("answer")}
+                              id="answer"
+                              placeholder="Ingresa tu respuesta"
+                              readOnly={false} // Editable
+                            />
+                            {errors.answer && (
+                              <p className="form-error">
+                                {errors.answer.message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                      {(itemToUpdate?.answer === "" &&
+                        user?.role === "OPERARIO") ||
+                        ((user?.role === "ADMIN" ||
+                          user?.role === "USUARIO") && (
+                          <Button type="submit">
+                            {isLoading && (
+                              <LoaderCircle className="mr-2 h-4 animate-spin" />
+                            )}
+                            {itemToUpdate && user?.role === "USUARIO"
+                              ? "Actualizar"
+                              : user?.role === "OPERARIO" ||
+                                user?.role === "ADMIN"
+                              ? "Responder"
+                              : "Crear"}
+                          </Button>
+                        ))}
+                    </DialogFooter>
+                  </form>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
+        {itemToUpdate &&
+          (user?.role === "ADMIN" || user?.role === "OPERARIO") && (
+            <Card>
+              <CardContent>
+                <Badge className="mb-2 mt-2">Usuario</Badge>
+                <div className="flex flex-col">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsUserDialogOpen(true)}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione el estado de la solicitud" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value={EstadoSolicitud.PENDIENTE}>
-                          Pendiente
-                        </SelectItem>
-                        <SelectItem value={EstadoSolicitud.ASIGNADA}>
-                          Asignada
-                        </SelectItem>
-                        <SelectItem value={EstadoSolicitud.FINALIZADA}>
-                          Finalizada
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.state && (
-                <p className="form-error">{errors.state.message}</p>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit">
-              {isLoading && <LoaderCircle className="mr-2 h-4 animate-spin" />}
-              {itemToUpdate ? "Actualizar" : "Crear"}
-            </Button>
-          </DialogFooter>
-        </form>
+                    Ver Información de Usuario
+                  </Button>
+                  <Dialog
+                    open={isUserDialogOpen}
+                    onOpenChange={setIsUserDialogOpen}
+                  >
+                    <DialogContent>
+                      <DialogContent className="space-y-2">
+                        <DialogHeader>
+                          <DialogTitle>Información del Usuario</DialogTitle>
+                          <DialogDescription>
+                            Datos del usuario asociado con esta solicitud.
+                          </DialogDescription>
+                        </DialogHeader>
+                        {itemToUpdate.user.image && (
+                          <Image
+                            src={itemToUpdate.user.image.url}
+                            alt="user-img"
+                            width={1000}
+                            height={1000}
+                            className="object-cover w-32 h-32 rounded-full m-auto"
+                          />
+                        )}
+                        <p>
+                          <strong>Nombre:</strong>{" "}
+                          {itemToUpdate?.user?.name || "No disponible"}
+                        </p>
+                        <p>
+                          <strong>Email:</strong>{" "}
+                          {itemToUpdate?.user?.email || "No disponible"}
+                        </p>
+                        <p>
+                          <strong>Unidad:</strong>{" "}
+                          {itemToUpdate?.user?.unit || "No disponible"}
+                        </p>
+                        <p>
+                          <strong>Rol:</strong>{" "}
+                          {itemToUpdate?.user?.role || "No disponible"}
+                        </p>
+                      </DialogContent>
+
+                      <DialogFooter>
+                        <Button onClick={() => setIsUserDialogOpen(false)}>
+                          Cerrar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+        {itemToUpdate &&
+          itemToUpdate.state === "asignada" &&
+          user?.role !== "OPERARIO" &&
+          itemToUpdate.operario && (
+            <Card>
+              <CardContent>
+                <Badge className="mb-2 mt-2">Operario</Badge>
+                <div className="flex flex-col">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsOperarioDialogOpen(true)}
+                  >
+                    Ver Información del Operario
+                  </Button>
+                  <Dialog
+                    open={isOperarioDialogOpen}
+                    onOpenChange={setIsOperarioDialogOpen}
+                  >
+                    <DialogContent className="space-y-2">
+                      <DialogHeader>
+                        <DialogTitle>Información del Operario</DialogTitle>
+                        <DialogDescription>
+                          Datos del operario asignado a esta solicitud.
+                        </DialogDescription>
+                      </DialogHeader>
+                      {itemToUpdate.user.image && (
+                        <Image
+                          src={itemToUpdate.operario.image.url}
+                          alt="user-img"
+                          width={1000}
+                          height={1000}
+                          className="object-cover w-32 h-32 rounded-full m-auto"
+                        />
+                      )}
+                      <p>
+                        <strong>Nombre:</strong>{" "}
+                        {itemToUpdate?.operario?.name || "No disponible"}
+                      </p>
+                      <p>
+                        <strong>Email:</strong>{" "}
+                        {itemToUpdate?.operario?.email || "No disponible"}
+                      </p>
+                      <p>
+                        <strong>Unidad:</strong>{" "}
+                        {itemToUpdate?.operario?.unit || "No disponible"}
+                      </p>
+                      <p>
+                        <strong>Rol:</strong>{" "}
+                        {itemToUpdate?.operario?.role || "No disponible"}
+                      </p>
+
+                      <DialogFooter>
+                        <Button onClick={() => setIsOperarioDialogOpen(false)}>
+                          Cerrar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardContent>
+            </Card>
+          )}
       </DialogContent>
     </Dialog>
   );

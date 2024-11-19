@@ -20,7 +20,7 @@ const Items = () => {
   const [searchTerm, setSearchTerm] = useState<string>(''); // Nuevo estado para el filtro
 
   //=========OBTENER USUARIOS DE FIRESTORE
-  const getItems = async () => {
+   const getItems = async () => {
     const path = `usuarios/users`;
 
     setIsLoading(true);
