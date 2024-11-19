@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/popover";
 import { AssingOp } from "./assignOp";
 import { useUser } from "@/hooks/use-user";
+import Image from "next/image";
 
 interface TableViewProps {
   items: Solicitud[];
@@ -190,6 +191,7 @@ export function TableView({
       <Table className="w-full">
         <TableHeader>
           <TableRow>
+            <TableHead className="text-center">Asignado</TableHead>
             <TableHead className="text-center">Nombre</TableHead>
             <TableHead className="text-center">Descripción</TableHead>
 
@@ -270,6 +272,19 @@ export function TableView({
           {!isLoading &&
             paginatedItems.map((item) => (
               <TableRow key={item.uid}>
+                <TableCell className="text-center">
+                  {item.state !== "pendiente" && item.operario?.image?.url ? (
+                    <Image
+                      src={item.operario.image.url}
+                      alt="Operario"
+                      width={1000}
+                      height={1000}
+                      className="w-10 h-10 rounded-full object-cover mx-auto"
+                    />
+                  ) : (
+                    ""
+                  )}
+                </TableCell>
                 <TableCell className="font-semibold text-center overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px]">
                   {item.name}
                 </TableCell>
@@ -317,8 +332,11 @@ export function TableView({
                           <Button variant="ghost">
                             <span className="flex items-center">
                               <SquarePen className="mr-2 w-4 h-4" />
-                              {user?.role==='ADMIN'?'Editar o Responder':user?.role==='OPERARIO'?'Responder':'Editar'}
-                              
+                              {user?.role === "ADMIN"
+                                ? "Editar o Responder"
+                                : user?.role === "OPERARIO"
+                                ? "Responder"
+                                : "Editar"}
                             </span>
                           </Button>
                         </CreateUpdateItem>

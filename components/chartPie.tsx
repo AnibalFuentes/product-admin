@@ -18,9 +18,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+export type EstadoSolicitud = "pendiente" | "asignada" | "finalizada";
 
-interface Solicitud {
-  state: string; // estado de la solicitud (pendiente, asignada, finalizada)
+export interface Solicitud {
+  state: EstadoSolicitud; // Define que el estado es uno de los valores permitidos
 }
 
 interface SolicitudesChartProps {
@@ -41,9 +42,21 @@ export function SolicitudesChart({ data }: SolicitudesChartProps) {
     );
 
     return [
-      { name: "Pendiente", value: statesCount.pendiente, fill: "var(--color-pendiente)" },
-      { name: "Asignada", value: statesCount.asignada, fill: "var(--color-asignada)" },
-      { name: "Finalizada", value: statesCount.finalizada, fill: "var(--color-finalizada)" },
+      {
+        name: "Pendiente",
+        value: statesCount.pendiente,
+        fill: "var(--color-pendiente)",
+      },
+      {
+        name: "Asignada",
+        value: statesCount.asignada,
+        fill: "var(--color-asignada)",
+      },
+      {
+        name: "Finalizada",
+        value: statesCount.finalizada,
+        fill: "var(--color-finalizada)",
+      },
     ];
   }, [data]);
 
@@ -112,9 +125,9 @@ export function SolicitudesChart({ data }: SolicitudesChartProps) {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 font-medium leading-none">
+        {/* <div className="flex items-center gap-2 font-medium leading-none">
           Crecimiento del 5.2% este mes <TrendingUp className="h-4 w-4" />
-        </div>
+        </div> */}
         <div className="leading-none text-muted-foreground">
           Mostrando el total de solicitudes agrupadas por estado
         </div>

@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/sidebar"
 
 export function VersionSwitcher({
-  onLogout, // Añade una función de cierre de sesión como prop
+  // onLogout, // Añade una función de cierre de sesión como prop
 }: {
-  onLogout:  () => void // Definimos el tipo de la función de logout
+  // onLogout:  () => void // Definimos el tipo de la función de logout
 }) {
   return (
     <SidebarMenu>
@@ -43,7 +43,7 @@ export function VersionSwitcher({
             align="start"
           >
             {/* Botón de Cerrar Sesión */}
-            <DropdownMenuItem onSelect={onLogout}>
+            <DropdownMenuItem /* onSelect={onLogout} */>
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar sesión
             </DropdownMenuItem>

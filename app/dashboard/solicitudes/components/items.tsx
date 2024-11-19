@@ -84,6 +84,7 @@ const Items = () => {
 
   useEffect(() => {
     if (user) getItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Filtrar solicitudes en función del término de búsqueda para todos los campos

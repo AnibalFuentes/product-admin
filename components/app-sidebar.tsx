@@ -54,7 +54,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <VersionSwitcher onLogout={async() => signOutAccount()} />
+        <VersionSwitcher /* onLogout={async() => signOutAccount()} */ />
         {/* <SearchForm /> */}
       </SidebarHeader>
       <SidebarContent>
