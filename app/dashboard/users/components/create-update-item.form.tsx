@@ -236,8 +236,8 @@ export function CreateUpdateItem({
       const { password, ...itemWithoutPassword } = item;
       updateCategoryInDB(itemWithoutPassword as User);
     } else {
-      // createUserInDB(item as User);
-      console.log(item);
+      createUserInDB(item as User);
+      // console.log(item);
     }
   };
 
@@ -396,7 +396,7 @@ export function CreateUpdateItem({
             </div>
           </DialogTitle>
           <DialogDescription>
-            <input
+            {/* <input
               type="file"
               accept=".xlsx, .xls"
               onChange={(e) => {
@@ -404,8 +404,8 @@ export function CreateUpdateItem({
                 if (file) {
                   createEntidadesFromExcel(file);
                 }
-              }}
-            />
+              }} */}
+            {/* /> */}
             Gestiona tu usuario con la siguiente información.
           </DialogDescription>
           {itemToUpdate && (

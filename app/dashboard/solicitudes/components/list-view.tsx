@@ -395,7 +395,7 @@ const ListView = ({
                       </Button>
                     </CreateUpdateItem>
                   </div>
-                  <div>
+                  {user?.role === "ADMINISTRADOR" &&<div>
                     <ConfirmDeletion
                       deleteUserInDB={deleteUserInDB}
                       item={item}
@@ -407,7 +407,7 @@ const ListView = ({
                         </span>
                       </Button>
                     </ConfirmDeletion>
-                  </div>
+                  </div>}
                   {user?.role === "ADMINISTRADOR" && (
                     <div>
                       <AssingOp item={item} getItems={getItems}>
