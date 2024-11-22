@@ -30,7 +30,7 @@ import toast from "react-hot-toast";
 
 import { useUser } from "@/hooks/use-user";
 import { SwitchStateItem } from "./switch-state-item";
-import { User } from "@/interfaces/user.interface";
+import { Entity, User } from "@/interfaces/user.interface";
 import { ItemImage } from "@/interfaces/item-image.interface";
 import DragAndDropImage from "@/components/drag-and-drop-image";
 import {
@@ -69,13 +69,17 @@ export function CreateUpdateItem({
   itemToUpdate,
   getItems,
 }: CreateUpdateItemProps) {
-  const { user,eps } = useUser();
+  const { user, eps } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [image, setImage] = useState("");
   const [state, setState] = useState(itemToUpdate?.state || false);
   const [canResend, setCanResend] = useState(true);
   const [edit, setEdit] = useState<boolean>(false);
+
+  const [filteredUnits, setFilteredUnits] = useState<Entity[]>([]);
+
+  // Filtrar las unidades según el tipo seleccionado
 
   const formSchema = z.object({
     uid: z.string(),
@@ -96,8 +100,13 @@ export function CreateUpdateItem({
     phone: z
       .string()
       .min(10, { message: "Debe ingresar un número de teléfono válido" }),
-    unit: z.enum(["UI", "UPGD"], { message: "Seleccione una unidad válida" }),
-    role: z.enum(["ADMIN", "OPERARIO", "USUARIO"], {
+    unit: z.object({
+      id: z.string().min(1),
+      nombre: z.string().min(1),
+      tipo: z.string().min(1),
+    }),
+
+    role: z.enum(["ADMINISTRADOR", "REFERENTE", "SOLICITANTE"], {
       message: "Seleccione un rol válido",
     }),
     state: z.boolean(),
@@ -119,15 +128,32 @@ export function CreateUpdateItem({
     },
   });
 
-  const { register, handleSubmit, formState, setValue, control } = form;
+  const { register, handleSubmit, formState, setValue, control, watch } = form;
   const { errors } = formState;
+  const selectedType = watch("unit.tipo");
 
   useEffect(() => {
     if (itemToUpdate) {
+      // Establecer la imagen, estado y valores iniciales del formulario
       setImage(itemToUpdate.image.url);
       setState(itemToUpdate.state);
+      setValue("unit", itemToUpdate.unit); // Configura la unidad inicial
+      setFilteredUnits(
+        eps?.filter(
+          (entity: Entity) => entity.tipo === itemToUpdate.unit.tipo
+        ) || []
+      );
     }
-  }, [itemToUpdate]);
+  }, [itemToUpdate, setValue, eps]);
+
+  useEffect(() => {
+    if (selectedType) {
+      setFilteredUnits(
+        eps?.filter((entity: Entity) => entity.tipo === selectedType)
+      );
+      setValue("unit", { id: "", nombre: "", tipo: selectedType });
+    }
+  }, [selectedType, setValue, eps]);
 
   const sendVerificationEmail = async (currentUser: FirebaseUser) => {
     try {
@@ -210,7 +236,8 @@ export function CreateUpdateItem({
       const { password, ...itemWithoutPassword } = item;
       updateCategoryInDB(itemWithoutPassword as User);
     } else {
-      createUserInDB(item as User);
+      // createUserInDB(item as User);
+      console.log(item);
     }
   };
 
@@ -452,31 +479,79 @@ export function CreateUpdateItem({
               />
               <p className="form-error">{errors.phone?.message}</p>
             </div>
-            {/* Unidad */}
-            <div className="mb-3">
+
+            {/* Select de Tipo */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Tipo</label>
               <Controller
-                name="unit"
+                name="unit.tipo"
                 control={control}
                 render={({ field }) => (
                   <Select
                     onValueChange={(value) => field.onChange(value)}
                     value={field.value}
-                    disabled={!edit && Boolean(itemToUpdate)}
                   >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Seleccione una unidad" />
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccione un tipo" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="UPGD">UPGD</SelectItem>
                         <SelectItem value="UI">UI</SelectItem>
+                        <SelectItem value="UPGD">UPGD</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 )}
               />
-              <p className="form-error">{errors.unit?.message}</p>
+              {/* <p className="text-red-500 text-sm">{errors.unit?.type.message}</p> */}
             </div>
+
+            {/* Select de Unidad */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Unidad</label>
+              <Controller
+                name="unit.id"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={(value) => {
+                      const selectedUnit = filteredUnits.find(
+                        (unit) => unit.id === value
+                      );
+                      if (selectedUnit) {
+                        setValue("unit", selectedUnit); // Actualiza todo el objeto de la unidad seleccionada
+                      }
+                      field.onChange(value); // Actualiza solo el id de la unidad
+                    }}
+                    value={field.value} // Establece el valor inicial del Select
+                    disabled={!selectedType && !itemToUpdate}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder="Seleccione una unidad"
+                        defaultValue={field.value}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {filteredUnits.length > 0 ? (
+                          filteredUnits.map((unit) => (
+                            <SelectItem key={unit.id} value={unit.id}>
+                              {unit.nombre}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <p>No hay unidades disponibles</p>
+                        )}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+
+              <p className="text-red-500 text-sm">{errors.unit?.id?.message}</p>
+            </div>
+
             {/* Rol */}
             <div className="mb-3">
               <Controller
@@ -493,9 +568,11 @@ export function CreateUpdateItem({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="ADMIN">ADMIN</SelectItem>
-                        <SelectItem value="OPERARIO">OPERARIO</SelectItem>
-                        <SelectItem value="USUARIO">USUARIO</SelectItem>
+                        <SelectItem value="ADMINISTRADOR">
+                          ADMINISTRADOR
+                        </SelectItem>
+                        <SelectItem value="REFERENTE">REFERENTE</SelectItem>
+                        <SelectItem value="SOLICITANTE">SOLICITANTE</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>

@@ -23,7 +23,7 @@ export default function DashboardLayout({
   const adminRoutes = ["/dashboard", "/dashboard/users"];
   const isInAdminRoute = adminRoutes.includes(pathName!);
 
-  if (user && user.role != "ADMIN" && isInAdminRoute)
+  if (user && user.role != "ADMINISTRADOR" && isInAdminRoute)
     return redirect("/dashboard/solicitudes");
 
   return (

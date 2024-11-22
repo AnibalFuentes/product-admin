@@ -117,14 +117,14 @@ export function CreateUpdateItem({
       // Si la solicitud tiene respuesta, cambia el estado a FINALIZADA y asigna answerAt
       if (
         itemToUpdate &&
-        (user?.role === "OPERARIO" || user?.role === "ADMIN") &&
+        (user?.role === "REFERENTE" || user?.role === "ADMINISTRADOR") &&
         item.answer
       ) {
         item.state = EstadoSolicitud.FINALIZADA;
         item.answerAt = Timestamp.now(); // Agregar la marca de tiempo
 
-        // Si el usuario es ADMIN, asignar los datos del usuario al operario
-        if (user?.role === "ADMIN") {
+        // Si el usuario es ADMINISTRADOR, asignar los datos del usuario al operario
+        if (user?.role === "ADMINISTRADOR") {
           item.operario = user;
         }
       }
@@ -226,10 +226,10 @@ export function CreateUpdateItem({
       <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {itemToUpdate && user?.role === "USUARIO"
+            {itemToUpdate && user?.role === "SOLICITANTE"
               ? "Editar Solicitud"
-              : user?.role === "OPERARIO" ||
-                (user?.role === "ADMIN" && itemToUpdate)
+              : user?.role === "REFERENTE" ||
+                (user?.role === "ADMINISTRADOR" && itemToUpdate)
               ? "Responder Solicitud"
               : "Crear Solicitud"}
           </DialogTitle>
@@ -255,7 +255,7 @@ export function CreateUpdateItem({
                           {...register("name")}
                           id="name"
                           placeholder="Nombre de la solicitud"
-                          readOnly={user?.role === "OPERARIO"} // Solo lectura
+                          readOnly={user?.role === "REFERENTE"} // Solo lectura
                         />
                         {errors.name && (
                           <p className="form-error">{errors.name.message}</p>
@@ -269,7 +269,7 @@ export function CreateUpdateItem({
                           {...register("description")}
                           id="description"
                           placeholder="Descripción de la solicitud"
-                          readOnly={user?.role === "OPERARIO"} // Solo lectura
+                          readOnly={user?.role === "REFERENTE"} // Solo lectura
                         />
                         {errors.description && (
                           <p className="form-error">
@@ -320,7 +320,7 @@ export function CreateUpdateItem({
                               <Select
                                 onValueChange={(value) => field.onChange(value)}
                                 value={field.value}
-                                disabled={user?.role === "OPERARIO"} // Solo lectura
+                                disabled={user?.role === "REFERENTE"} // Solo lectura
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Seleccione un subtipo" />
@@ -371,7 +371,7 @@ export function CreateUpdateItem({
                       )}
 
                       {/* Estado */}
-                      {/* {user?.role === "ADMIN" && (
+                      {/* {user?.role === "ADMINISTRADOR" && (
                         <div className="mb-3">
                           <Controller
                             name="state"
@@ -415,8 +415,8 @@ export function CreateUpdateItem({
 
                       {/* Answer (Solo para Edición y Roles Permitidos) */}
                       {itemToUpdate &&
-                        (user?.role === "OPERARIO" ||
-                          user?.role === "ADMIN") && (
+                        (user?.role === "REFERENTE" ||
+                          user?.role === "ADMINISTRADOR") && (
                           <div className="mb-3">
                             <Label htmlFor="answer">Respuesta</Label>
                             <Textarea
@@ -435,17 +435,17 @@ export function CreateUpdateItem({
                     </div>
                     <DialogFooter>
                       {(itemToUpdate?.answer === "" &&
-                        user?.role === "OPERARIO") ||
-                        ((user?.role === "ADMIN" ||
-                          user?.role === "USUARIO") && (
+                        user?.role === "REFERENTE") ||
+                        ((user?.role === "ADMINISTRADOR" ||
+                          user?.role === "SOLICITANTE") && (
                           <Button type="submit">
                             {isLoading && (
                               <LoaderCircle className="mr-2 h-4 animate-spin" />
                             )}
-                            {itemToUpdate && user?.role === "USUARIO"
+                            {itemToUpdate && user?.role === "SOLICITANTE"
                               ? "Actualizar"
-                              : user?.role === "OPERARIO" ||
-                                user?.role === "ADMIN"
+                              : user?.role === "REFERENTE" ||
+                                user?.role === "ADMINISTRADOR"
                               ? "Responder"
                               : "Crear"}
                           </Button>
@@ -458,7 +458,7 @@ export function CreateUpdateItem({
           </CardContent>
         </Card>
         {itemToUpdate &&
-          (user?.role === "ADMIN" || user?.role === "OPERARIO") && (
+          (user?.role === "ADMINISTRADOR" || user?.role === "REFERENTE") && (
             <Card>
               <CardContent>
                 <Badge className="mb-2 mt-2">Usuario</Badge>
@@ -500,7 +500,7 @@ export function CreateUpdateItem({
                         </p>
                         <p>
                           <strong>Unidad:</strong>{" "}
-                          {itemToUpdate?.user?.unit || "No disponible"}
+                          {itemToUpdate?.user?.unit.nombre || "No disponible"}
                         </p>
                         <p>
                           <strong>Rol:</strong>{" "}
@@ -522,7 +522,7 @@ export function CreateUpdateItem({
 
         {itemToUpdate &&
           itemToUpdate.state === "asignada" &&
-          user?.role !== "OPERARIO" &&
+          user?.role !== "REFERENTE" &&
           itemToUpdate.operario && (
             <Card>
               <CardContent>
@@ -564,7 +564,8 @@ export function CreateUpdateItem({
                       </p>
                       <p>
                         <strong>Unidad:</strong>{" "}
-                        {itemToUpdate?.operario?.unit || "No disponible"}
+                        {itemToUpdate?.operario?.unit.tipo || "No disponible"}
+                        {itemToUpdate?.operario?.unit.nombre || "No disponible"}
                       </p>
                       <p>
                         <strong>Rol:</strong>{" "}

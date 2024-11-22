@@ -34,13 +34,13 @@ const Items = () => {
         let filteredSolicitudes: Solicitud[] = [];
 
         // Filtrar según el rol del usuario
-        if (user?.role === "ADMIN") {
-          filteredSolicitudes = res.solicitudes; // Admin ve todas las solicitudes
-        } else if (user?.role === "USUARIO") {
+        if (user?.role === "ADMINISTRADOR") {
+          filteredSolicitudes = res.solicitudes; // ADMINISTRADOR ve todas las solicitudes
+        } else if (user?.role === "SOLICITANTE") {
           filteredSolicitudes = res.solicitudes.filter(
             (solicitud) => solicitud.user?.uid === user?.uid // Usuario ve sus propias solicitudes
           );
-        } else if (user?.role === "OPERARIO") {
+        } else if (user?.role === "REFERENTE") {
           filteredSolicitudes = res.solicitudes.filter(
             (solicitud) => solicitud.operario?.uid === user?.uid // Operario ve las asignadas a él
           );
@@ -123,7 +123,7 @@ const Items = () => {
         </div>
 
         {/* Botón de creación */}
-        {user?.role === "ADMIN" && (
+        {user?.role === "ADMINISTRADOR" && (
           <CreateUpdateItem getItems={getItems}>
             <Button className="">
               {!isMolbile && "Crear"}

@@ -9,6 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Solicitud } from "@/interfaces/solicitud.interface";
 import {
   CheckCircle,
@@ -45,6 +56,10 @@ const ListView = ({
   getItems,
   deleteUserInDB,
 }: ListViewProps) => {
+  const [isOperarioDialogOpen, setIsOperarioDialogOpen] = useState(false);
+  const [selectedOperario, setSelectedOperario] = useState<Solicitud | null>(
+    null
+  );
   const { user } = useUser();
   const [filterBy, setFilterBy] = useState<"Estado" | "Tipo" | "Subtipo" | "">(
     ""
@@ -293,6 +308,15 @@ const ListView = ({
                       ? "border-blue-600"
                       : "border-green-600"
                   }`}
+                  onClick={() => {
+                    if (
+                      item.state === "asignada" ||
+                      item.state === "finalizada"
+                    ) {
+                      setSelectedOperario(item); // Establece el operario seleccionado
+                      setIsOperarioDialogOpen(true); // Abre el diálogo
+                    }
+                  }}
                   variant="outline"
                 >
                   {item.state === "pendiente" ? (
@@ -305,6 +329,52 @@ const ListView = ({
                   {item.state.charAt(0).toUpperCase() + item.state.slice(1)}
                 </Badge>
               </div>
+              <Dialog
+                open={isOperarioDialogOpen}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setIsOperarioDialogOpen(false);
+                    setSelectedOperario(null); // Limpia el operario seleccionado al cerrar
+                  }
+                }}
+              >
+                <DialogContent className="space-y-2">
+                  <DialogHeader>
+                    <DialogTitle>Información del Operario</DialogTitle>
+                    <DialogDescription>
+                      Datos del operario asignado a esta solicitud.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {selectedOperario?.operario?.image?.url ? (
+                    <Image
+                      src={selectedOperario.operario.image.url}
+                      alt="Operario"
+                      width={1000}
+                      height={1000}
+                      className="object-cover w-32 h-32 rounded-full m-auto"
+                    />
+                  ) : (
+                    <p>No hay imagen disponible</p>
+                  )}
+                  <p>
+                    <strong>Nombre:</strong>{" "}
+                    {selectedOperario?.operario?.name || "No disponible"}
+                  </p>
+                  <p>
+                    <strong>Email:</strong>{" "}
+                    {selectedOperario?.operario?.email || "No disponible"}
+                  </p>
+                  <p>
+                    <strong>Unidad:</strong>{" "}
+                    {selectedOperario?.operario?.unit.tipo || "No disponible"}-
+                    {selectedOperario?.operario?.unit.nombre || "No disponible"}
+                  </p>
+                  <p>
+                    <strong>Rol:</strong>{" "}
+                    {selectedOperario?.operario?.role || "No disponible"}
+                  </p>
+                </DialogContent>
+              </Dialog>
             </div>
             <div className="flex justify-end items-center w-full mt-4 space-x-2">
               <Popover modal={true}>
@@ -338,7 +408,7 @@ const ListView = ({
                       </Button>
                     </ConfirmDeletion>
                   </div>
-                  {user?.role === "ADMIN" && (
+                  {user?.role === "ADMINISTRADOR" && (
                     <div>
                       <AssingOp item={item} getItems={getItems}>
                         <Button variant="ghost">

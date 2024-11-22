@@ -23,19 +23,19 @@ const navData = [
     title: "Dashboard",
     url: "/dashboard",
     icon: <LayoutDashboard />,
-    roles: ["ADMIN"], // Solo visible para el rol ADMIN
+    roles: ["ADMINISTRADOR"], // Solo visible para el rol ADMINISTRADOR
   },
   {
     title: "Solicitudes",
     url: "/dashboard/solicitudes",
     icon: <Speech />,
-    roles: ["ADMIN", "USUARIO", "OPERARIO"], // Visible para ADMIN, USUARIO, OPERARIO
+    roles: ["ADMINISTRADOR", "SOLICITANTE", "REFERENTE"], // Visible para ADMINISTRADOR, SOLICITANTE, REFERENTE
   },
   {
     title: "Usuarios",
     url: "/dashboard/users",
     icon: <Users2 />,
-    roles: ["ADMIN"], // Solo visible para el rol ADMIN
+    roles: ["ADMINISTRADOR"], // Solo visible para el rol ADMINISTRADOR
   },
 ];
 

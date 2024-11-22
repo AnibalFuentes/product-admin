@@ -1,23 +1,22 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { LogOut, ChevronsUpDown, GalleryVerticalEnd } from "lucide-react"
+import * as React from "react";
+import { LogOut, ChevronsUpDown, GalleryVerticalEnd } from "lucide-react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-export function VersionSwitcher({
-  // onLogout, // Añade una función de cierre de sesión como prop
-}: {
+export function VersionSwitcher({}: // onLogout, // Añade una función de cierre de sesión como prop
+{
   // onLogout:  () => void // Definimos el tipo de la función de logout
 }) {
   return (
@@ -33,7 +32,9 @@ export function VersionSwitcher({
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold">Solicitudes - Admin</span>
+                <span className="font-semibold">
+                  Solicitudes
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -51,5 +52,5 @@ export function VersionSwitcher({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

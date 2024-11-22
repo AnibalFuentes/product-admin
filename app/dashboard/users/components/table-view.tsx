@@ -44,8 +44,12 @@ export function TableView({
   deleteUserInDB,
   isLoading,
 }: TableViewProps) {
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
-  const [roleFilter, setRoleFilter] = useState<"all" | "ADMIN" | "OPERARIO" | "USUARIO">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
+  const [roleFilter, setRoleFilter] = useState<
+    "all" | "ADMINISTRADOR" | "REFERENTE" | "SOLICITANTE"
+  >("all");
   const [unitFilter, setUnitFilter] = useState<"all" | "UI" | "UPGD">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Define la cantidad de elementos por página
@@ -58,7 +62,7 @@ export function TableView({
       (statusFilter === "inactive" && !item.state);
 
     const roleMatch = roleFilter === "all" || item.role === roleFilter;
-    const unitMatch = unitFilter === "all" || item.unit === unitFilter;
+    const unitMatch = unitFilter === "all" || item.unit.tipo === unitFilter;
 
     return statusMatch && roleMatch && unitMatch;
   });
@@ -167,7 +171,7 @@ export function TableView({
             <TableHead className="text-center">Nombre</TableHead>
             <TableHead className="text-center">
               <div className="flex items-center">
-                Unidad
+                Tipo
                 <Select
                   onValueChange={(value) =>
                     setUnitFilter(value as "all" | "UI" | "UPGD")
@@ -185,13 +189,18 @@ export function TableView({
                 </Select>
               </div>
             </TableHead>
+            <TableHead className="text-center w-[250px]">Unidad</TableHead>
             <TableHead className="text-center">
               <div className="flex items-center">
                 Rol
                 <Select
                   onValueChange={(value) =>
                     setRoleFilter(
-                      value as "all" | "ADMIN" | "OPERARIO" | "USUARIO"
+                      value as
+                        | "all"
+                        | "ADMINISTRADOR"
+                        | "REFERENTE"
+                        | "SOLICITANTE"
                     )
                   }
                   value={roleFilter}
@@ -201,13 +210,14 @@ export function TableView({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="ADMIN">ADMIN</SelectItem>
-                    <SelectItem value="OPERARIO">OPERARIO</SelectItem>
-                    <SelectItem value="USUARIO">USUARIO</SelectItem>
+                    <SelectItem value="ADMINISTRADOR">ADMINISTRADOR</SelectItem>
+                    <SelectItem value="REFERENTE">REFERENTE</SelectItem>
+                    <SelectItem value="SOLICITANTE">SOLICITANTE</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </TableHead>
+
             <TableHead className="text-center">
               <div className="flex items-center">
                 Estado
@@ -247,11 +257,17 @@ export function TableView({
                 <TableCell className="font-semibold text-center">
                   {item.name}
                 </TableCell>
-                <TableCell className="text-center">{item.unit}</TableCell>
+                <TableCell className="text-center">{item.unit.tipo}</TableCell>
+                <TableCell className="text-center">
+                  {item.unit.nombre}
+                </TableCell>
                 <TableCell className="text-center">{item.role}</TableCell>
                 <TableCell className="text-center">
                   {item.state ? (
-                    <Badge className="border border-green-600" variant="outline">
+                    <Badge
+                      className="border border-green-600"
+                      variant="outline"
+                    >
                       <CheckCircle color="green" className="mr-1" /> Activo
                     </Badge>
                   ) : (
@@ -266,8 +282,11 @@ export function TableView({
                       <SquarePen />
                     </Button>
                   </CreateUpdateItem>
-                  {item.role !== 'ADMIN' && (
-                    <ConfirmDeletion deleteUserInDB={deleteUserInDB} item={item}>
+                  {item.role !== "ADMINISTRADOR" && (
+                    <ConfirmDeletion
+                      deleteUserInDB={deleteUserInDB}
+                      item={item}
+                    >
                       <Button className="ml-4" variant="destructive">
                         <Trash2 />
                       </Button>
@@ -276,22 +295,37 @@ export function TableView({
                 </TableCell>
               </TableRow>
             ))}
-          {isLoading && Array.from({ length: 5 }).map((_, i) => (
-            <TableRow key={i}>
-              <TableCell><Skeleton className="h-16 rounded-xl" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-            </TableRow>
-          ))}
+          {isLoading &&
+            Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <Skeleton className="h-16 rounded-xl" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
         {!isLoading && filteredItems.length !== 0 && (
           <TableFooter>
             <TableRow>
               <TableCell colSpan={5}>Total</TableCell>
-              <TableCell className="text-right">{filteredItems.length}</TableCell>
+              <TableCell className="text-right">
+                {filteredItems.length}
+              </TableCell>
             </TableRow>
           </TableFooter>
         )}
@@ -304,7 +338,7 @@ export function TableView({
           <h2 className="text-center">No hay usuarios disponibles</h2>
         </div>
       )}
-      
+
       {/* Controles de paginación */}
       <div className="flex justify-between items-center mt-4">
         <Button onClick={goToPreviousPage} disabled={currentPage === 1}>
@@ -321,8 +355,4 @@ export function TableView({
   );
 }
 
-
-
-
 //?comment
-

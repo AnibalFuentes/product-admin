@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import { SolicitudesChart } from "@/components/chartPie";
 
 // export const metadata: Metadata = {
-//   title: 'Dashboard - Product Admin',
+//   title: 'Dashboard - Product ADMINISTRADOR',
 //   description: 'Sign in to your account',
 // };
 
@@ -40,7 +40,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (user?.role === "ADMIN") getSolicitudes();
+    if (user?.role === "ADMINISTRADOR") getSolicitudes();
   }, [user]);
 
   return (

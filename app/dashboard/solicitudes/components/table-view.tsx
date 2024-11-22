@@ -364,7 +364,9 @@ export function TableView({
                     </p>
                     <p>
                       <strong>Unidad:</strong>{" "}
-                      {selectedOperario?.operario?.unit || "No disponible"}
+                      {selectedOperario?.operario?.unit.tipo || "No disponible"}
+                      -
+                      {selectedOperario?.operario?.unit.nombre || "No disponible"}
                     </p>
                     <p>
                       <strong>Rol:</strong>{" "}
@@ -391,7 +393,7 @@ export function TableView({
                           <Button variant="ghost">
                             <span className="flex items-center">
                               <SquarePen className="mr-2 w-4 h-4" />
-                              {user?.role === "ADMIN"
+                              {user?.role === "ADMINISTRADOR"
                                 ? "Editar o Responder"
                                 : user?.role === "OPERARIO"
                                 ? "Responder"
@@ -400,7 +402,7 @@ export function TableView({
                           </Button>
                         </CreateUpdateItem>
                       </div>
-                      {user?.role === "ADMIN" && (
+                      {user?.role === "ADMINISTRADOR" && (
                         <div>
                           <ConfirmDeletion
                             deleteUserInDB={deleteUserInDB}
@@ -415,7 +417,7 @@ export function TableView({
                           </ConfirmDeletion>
                         </div>
                       )}
-                      {user?.role === "ADMIN" && (
+                      {user?.role === "ADMINISTRADOR" && (
                         <div>
                           <AssingOp item={item} getItems={getItems}>
                             <Button variant={"ghost"}>

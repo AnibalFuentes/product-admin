@@ -44,12 +44,14 @@ const ListView = ({
   getItems,
   deleteUserInDB,
 }: ListViewProps) => {
-  const [filterBy, setFilterBy] = useState<"Estado" | "Rol" | "Unidad" | "">("");
+  const [filterBy, setFilterBy] = useState<"Estado" | "Rol" | "Unidad" | "">(
+    ""
+  );
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
   const [roleFilter, setRoleFilter] = useState<
-    "all" | "ADMIN" | "OPERARIO" | "USUARIO"
+    "all" | "ADMINISTRADOR" | "REFERENTE" | "SOLICITANTE"
   >("all");
   const [unitFilter, setUnitFilter] = useState<"all" | "UI" | "UPGD">("all");
 
@@ -63,7 +65,7 @@ const ListView = ({
       (statusFilter === "active" && item.state) ||
       (statusFilter === "inactive" && !item.state);
     const roleMatch = roleFilter === "all" || item.role === roleFilter;
-    const unitMatch = unitFilter === "all" || item.unit === unitFilter;
+    const unitMatch = unitFilter === "all" || item.unit.tipo === unitFilter;
 
     return statusMatch && roleMatch && unitMatch;
   });
@@ -128,7 +130,9 @@ const ListView = ({
           <Select
             value={roleFilter !== "all" ? roleFilter : ""}
             onValueChange={(value) =>
-              setRoleFilter(value as "all" | "ADMIN" | "OPERARIO" | "USUARIO")
+              setRoleFilter(
+                value as "all" | "ADMINISTRADOR" | "REFERENTE" | "SOLICITANTE"
+              )
             }
           >
             <SelectTrigger className="w-[180px]">
@@ -138,9 +142,9 @@ const ListView = ({
               <SelectGroup>
                 <SelectLabel>Rol</SelectLabel>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="ADMIN">ADMIN</SelectItem>
-                <SelectItem value="OPERARIO">OPERARIO</SelectItem>
-                <SelectItem value="USUARIO">USUARIO</SelectItem>
+                <SelectItem value="ADMINISTRADOR">ADMINISTRADOR</SelectItem>
+                <SelectItem value="REFERENTE">REFERENTE</SelectItem>
+                <SelectItem value="SOLICITANTE">SOLICITANTE</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -271,7 +275,7 @@ const ListView = ({
                     className="border border-solid border-slate-600 text-sm truncate"
                     variant="outline"
                   >
-                    {item.unit}
+                    {item.unit.tipo}
                   </Badge>
                   {item.state ? (
                     <Badge
@@ -297,7 +301,7 @@ const ListView = ({
                   <SquarePen className="w-5 h-5" />
                 </Button>
               </CreateUpdateItem>
-              {item.role !== "ADMIN" && (
+              {item.role !== "ADMINISTRADOR" && (
                 <ConfirmDeletion deleteUserInDB={deleteUserInDB} item={item}>
                   <Button className="w-8 h-8 p-0" variant="destructive">
                     <Trash2 className="w-5 h-5" />
@@ -337,7 +341,10 @@ const ListView = ({
 
       {/* Dialogo de información */}
       {selectedUser && (
-        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+        <Dialog
+          open={!!selectedUser}
+          onOpenChange={() => setSelectedUser(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{selectedUser.name}</DialogTitle>
@@ -352,7 +359,7 @@ const ListView = ({
                   />
                   <p className="mt-4">{selectedUser.email}</p>
                   <p>{selectedUser.role}</p>
-                  <p>{selectedUser.unit}</p>
+                  <p>{selectedUser.unit.tipo}</p>
                 </div>
               </DialogDescription>
             </DialogHeader>

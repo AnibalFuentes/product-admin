@@ -9,7 +9,9 @@ import { useEffect, useState } from "react";
 
 export const useUser = () => {
   const [user, setUser] = useState<User | undefined | DocumentData>(undefined);
-  const [eps, setEps] = useState<Entity[]>();
+  const [eps, setEps] = useState<Entity[] | undefined | DocumentData>(
+    undefined
+  );
   const pathName = usePathname();
   const router = useRouter();
 
@@ -29,7 +31,7 @@ export const useUser = () => {
       // Buscar el usuario en el array `users` dentro del documento `usuarios`
       const userFromArray = res?.users.find((user: User) => user.uid === uid);
       const epss = res?.eps;
-      console.log(epss);
+      console.log(epss.length);
 
       if (userFromArray) {
         // Verificar si el email está verificado
@@ -37,7 +39,7 @@ export const useUser = () => {
         setUser(userFromArray);
         setInLocalstorage("user", userFromArray); // Guardar el usuario en local storage solo si el email está verificado
       }
-      if (user?.role === "ADMIN" && epss) {
+      if (userFromArray.role === "ADMINISTRADOR" && epss) {
         // Verificar si el email está verificado
 
         setEps(epss);

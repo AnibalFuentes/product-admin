@@ -31,25 +31,29 @@ import {
 } from "@/components/ui/table"; // Importa el componente de tabla
 import { createUser, db, signOutAccount, updateDocument } from "@/lib/firebase";
 import { arrayUnion, doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
-import {User as FirebaseUser, sendEmailVerification } from "firebase/auth";
+import { User as FirebaseUser, sendEmailVerification } from "firebase/auth";
 import toast from "react-hot-toast";
 import { DEFAULT_USER_IMAGE_URL } from "@/constants/constants";
 
 interface DropdownMenuDemoProps {
   onResendVerification: () => void;
   itemToUpdate?: User;
-  getItems: () => Promise<void>
+  getItems: () => Promise<void>;
 }
 
-export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }: DropdownMenuDemoProps) {
+export function DropdownMenuDemo({
+  onResendVerification,
+  itemToUpdate,
+  getItems,
+}: DropdownMenuDemoProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [usersFromExcel, setUsersFromExcel] = useState<User[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   // Función para manejar la carga de archivos Excel
   // URL de la imagen predeterminada en Firebase
-  const defaultImageUrl = DEFAULT_USER_IMAGE_URL
+  const defaultImageUrl = DEFAULT_USER_IMAGE_URL;
 
   // Función para manejar la carga de archivos Excel
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +91,7 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
           name: row[1] as string,
           phone: row[2] as string,
           unit: row[3] as "UI" | "UPGD",
-          role: row[4] as "ADMIN" | "OPERARIO" | "USUARIO",
+          role: row[4] as "ADMINISTRADOR" | "REFERENTE" | "SOLICITANTE",
           state: true,
           image: {
             url: defaultImageUrl,
@@ -108,7 +112,7 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
     const updatedUsers = [...usersFromExcel]; // Crear una copia para actualizar los resultados
 
     try {
-      const count=0;
+      const count = 0;
       for (let i = 1; i < updatedUsers.length; i++) {
         const item = updatedUsers[i];
         const path = `usuarios/users`;
@@ -151,12 +155,16 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
       }
 
       // Crear el archivo Excel actualizado usando los datos originales con la columna de resultado
-      const worksheet = XLSX.utils.json_to_sheet(updatedUsers, { skipHeader: true });
+      const worksheet = XLSX.utils.json_to_sheet(updatedUsers, {
+        skipHeader: true,
+      });
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Resultados");
       XLSX.writeFile(workbook, "ReporteUsuarios.xlsx");
 
-      toast.success("Usuarios procesados y reporte generado exitosamente", { duration: 3000 });
+      toast.success("Usuarios procesados y reporte generado exitosamente", {
+        duration: 3000,
+      });
       await signOutAccount();
       getItems();
       setIsDialogOpen(false);
@@ -171,20 +179,18 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
     }
   };
 
-  
   const sendVerificationEmail = async (currentUser: FirebaseUser) => {
     try {
       await sendEmailVerification(currentUser);
       console.log("Correo de verificación enviado");
-   
     } catch (error) {
       const err = error as Error;
       console.log(`Error al enviar verificación: ${err.message}`);
     }
   };
-  
+
   const handleCreateUsers = async () => {
-    createUsersFromExcel()
+    createUsersFromExcel();
     setIsDialogOpen(false); // Cerrar el diálogo después de crear los usuarios
   };
   const handleCloseDialog = (open: boolean) => {
@@ -194,7 +200,6 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
       setErrorMessage(null);
     }
   };
-
 
   return (
     <DropdownMenu>
@@ -208,13 +213,19 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {itemToUpdate && (
-            <DropdownMenuItem onClick={onResendVerification} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={onResendVerification}
+              className="cursor-pointer"
+            >
               <Mail />
               <span>Reenviar verificación</span>
             </DropdownMenuItem>
           )}
           {!itemToUpdate && (
-            <DropdownMenuItem onClick={() => setIsDialogOpen(true)} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={() => setIsDialogOpen(true)}
+              className="cursor-pointer"
+            >
               <Users />
               <span>Crear usuarios desde Excel</span>
             </DropdownMenuItem>
@@ -227,7 +238,9 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
         <DialogContent className="sm:max-w-[700px] w-full max-w-[90vw] overflow-x-auto">
           <DialogHeader>
             <DialogTitle>Cargar Usuarios desde Excel</DialogTitle>
-            <DialogDescription>Sube un archivo Excel con el formato adecuado.</DialogDescription>
+            <DialogDescription>
+              Sube un archivo Excel con el formato adecuado.
+            </DialogDescription>
           </DialogHeader>
           <Input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
           {errorMessage && <p className="text-red-500">{errorMessage}</p>}
@@ -238,21 +251,44 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
                 <Table className="min-w-[650px] mt-2 border border-gray-300 rounded-md overflow-hidden shadow-md">
                   <TableHeader>
                     <TableRow className="bg-gray-100">
-                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">Correo</TableHead>
-                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">Nombres</TableHead>
-                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">Teléfono</TableHead>
-                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">Unidad</TableHead>
-                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">Rol</TableHead>
+                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">
+                        Correo
+                      </TableHead>
+                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">
+                        Nombres
+                      </TableHead>
+                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">
+                        Teléfono
+                      </TableHead>
+                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">
+                        Unidad
+                      </TableHead>
+                      <TableHead className="px-4 py-2 text-left text-gray-700 font-medium">
+                        Rol
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {usersFromExcel.map((user, index) => (
-                      <TableRow key={index} className="border-t hover:bg-gray-50">
-                        <TableCell className="px-4 py-2 text-gray-800">{user.email}</TableCell>
-                        <TableCell className="px-4 py-2 text-gray-800">{user.name}</TableCell>
-                        <TableCell className="px-4 py-2 text-gray-800">{user.phone}</TableCell>
-                        <TableCell className="px-4 py-2 text-gray-800">{user.unit}</TableCell>
-                        <TableCell className="px-4 py-2 text-gray-800">{user.role}</TableCell>
+                      <TableRow
+                        key={index}
+                        className="border-t hover:bg-gray-50"
+                      >
+                        <TableCell className="px-4 py-2 text-gray-800">
+                          {user.email}
+                        </TableCell>
+                        <TableCell className="px-4 py-2 text-gray-800">
+                          {user.name}
+                        </TableCell>
+                        <TableCell className="px-4 py-2 text-gray-800">
+                          {user.phone}
+                        </TableCell>
+                        <TableCell className="px-4 py-2 text-gray-800">
+                          {user.unit}
+                        </TableCell>
+                        <TableCell className="px-4 py-2 text-gray-800">
+                          {user.role}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -261,7 +297,10 @@ export function DropdownMenuDemo({ onResendVerification, itemToUpdate,getItems }
             </div>
           )}
           <DialogFooter>
-            <Button onClick={handleCreateUsers} disabled={usersFromExcel.length === 0}>
+            <Button
+              onClick={handleCreateUsers}
+              disabled={usersFromExcel.length === 0}
+            >
               Crear Usuarios
             </Button>
           </DialogFooter>

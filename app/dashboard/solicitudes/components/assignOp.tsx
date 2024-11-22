@@ -47,7 +47,7 @@ export function AssingOp({ children, item, getItems }: AssingOpProps) {
       if (res && res.users) {
         // Filtrar usuarios cuyo rol sea 'OPERARIO'
         const filteredOperarios = res.users.filter(
-          (user) => user.role === "OPERARIO"
+          (user) => user.role === "REFERENTE"
         );
         setOperarios(filteredOperarios);
       } else {
@@ -124,7 +124,7 @@ export function AssingOp({ children, item, getItems }: AssingOpProps) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-gray-500">
-                    Unidad: {operario.unit || "Sin unidad"}
+                    Unidad: {operario.unit.nombre || "Sin unidad"}
                   </p>
                 </CardContent>
                 <CardFooter>
