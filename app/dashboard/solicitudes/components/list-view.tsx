@@ -45,7 +45,7 @@ const ListView = ({
   getItems,
   deleteUserInDB,
 }: ListViewProps) => {
-  const user = useUser();
+  const { user } = useUser();
   const [filterBy, setFilterBy] = useState<"Estado" | "Tipo" | "Subtipo" | "">(
     ""
   );
@@ -91,7 +91,7 @@ const ListView = ({
     statusFilter !== "all" || typeFilter !== "all" || subtypeFilter !== "all";
 
   return (
-    <div className="block md:hidden">
+    <div className="block md:hidden overflow-hidden w-full">
       {/* Selección de filtro */}
       <div className="mb-4 flex space-x-2">
         <Select
@@ -264,32 +264,34 @@ const ListView = ({
         filteredItems.map((item) => (
           <div
             key={item.uid}
-            className="flex flex-col justify-between items-start mb-6 border border-solid border-gray-300 rounded-xl p-6"
+            className="flex flex-col justify-between items-start mb-6 border border-solid border-gray-300 rounded-xl p-6 w-full overflow-hidden"
           >
-            <div className="flex items-center w-full">
-              <div className="flex-grow">
-                <h3 className="font-semibold">{item.name}</h3>
-                <Badge
-                  className="border border-solid border-slate-600 "
-                  variant="outline"
-                >
-                  {item.type}
-                </Badge>
-                <Badge
-                  className="border border-solid border-slate-600  ml-2"
-                  variant="outline"
-                >
-                  {item.subtype}
-                </Badge>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex-grow overflow-hidden">
+                <h3 className="font-semibold truncate">{item.name}</h3>
+                <div className="flex space-x-2">
+                  <Badge
+                    className="border border-solid border-slate-600 truncate"
+                    variant="outline"
+                  >
+                    {item.type}
+                  </Badge>
+                  <Badge
+                    className="border border-solid border-slate-600 truncate"
+                    variant="outline"
+                  >
+                    {item.subtype}
+                  </Badge>
+                </div>
               </div>
-              <div>
+              <div className="flex-shrink-0">
                 <Badge
-                  className={`border ${
+                  className={`border truncate ${
                     item.state === "pendiente"
-                      ? "border-orange-600 "
+                      ? "border-orange-600"
                       : item.state === "asignada"
-                      ? "border-blue-600 "
-                      : "border-green-600 "
+                      ? "border-blue-600"
+                      : "border-green-600"
                   }`}
                   variant="outline"
                 >
@@ -304,7 +306,7 @@ const ListView = ({
                 </Badge>
               </div>
             </div>
-            <div className="flex justify-end items-center w-full">
+            <div className="flex justify-end items-center w-full mt-4 space-x-2">
               <Popover modal={true}>
                 <PopoverTrigger>
                   <Button variant="ghost" size="sm">
@@ -312,8 +314,7 @@ const ListView = ({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-2">
-                  {" "}
-                  {/* Ajusta automáticamente al contenido */}
+                  {/* Opciones del popover */}
                   <div className="mb-2">
                     <CreateUpdateItem getItems={getItems} itemToUpdate={item}>
                       <Button variant="ghost">
@@ -329,7 +330,7 @@ const ListView = ({
                       deleteUserInDB={deleteUserInDB}
                       item={item}
                     >
-                      <Button variant={"ghost"}>
+                      <Button variant="ghost">
                         <span className="flex items-center">
                           <Trash2 className="mr-2 w-4 h-4 text-red-600" />
                           Eliminar
@@ -340,7 +341,7 @@ const ListView = ({
                   {user?.role === "ADMIN" && (
                     <div>
                       <AssingOp item={item} getItems={getItems}>
-                        <Button variant={"ghost"}>
+                        <Button variant="ghost">
                           <span className="flex items-center">
                             <User className="mr-2 w-4 h-4 text-blue-600" />
                             Asignar

@@ -26,15 +26,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
-  const user = useUser();
+  const { user } = useUser();
   const pathName = usePathname();
 
   const authRoutes = ["/", "/forgot-password"];
   const isInAuthRoute = authRoutes.includes(pathName);
 
   if (user && isInAuthRoute) return redirect("/dashboard");
-  
+
   return (
     <html lang="en">
       <body

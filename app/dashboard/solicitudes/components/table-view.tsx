@@ -9,6 +9,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   CheckCircle,
   ClockAlert,
   Ghost,
@@ -56,12 +65,17 @@ export function TableView({
   deleteUserInDB,
   isLoading,
 }: TableViewProps) {
-  const user = useUser();
+  const { user } = useUser();
   const [statusFilter, setStatusFilter] = useState<
     "all" | "pendiente" | "asignada" | "finalizada"
   >("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [subtypeFilter, setSubtypeFilter] = useState<Subtype>("all");
+  const [isOperarioDialogOpen, setIsOperarioDialogOpen] = useState(false);
+  const [selectedOperario, setSelectedOperario] = useState<Solicitud | null>(
+    null
+  );
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -191,7 +205,6 @@ export function TableView({
       <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">Asignado</TableHead>
             <TableHead className="text-center">Nombre</TableHead>
             <TableHead className="text-center">Descripción</TableHead>
 
@@ -272,19 +285,6 @@ export function TableView({
           {!isLoading &&
             paginatedItems.map((item) => (
               <TableRow key={item.uid}>
-                <TableCell className="text-center">
-                  {item.state !== "pendiente" && item.operario?.image?.url ? (
-                    <Image
-                      src={item.operario.image.url}
-                      alt="Operario"
-                      width={1000}
-                      height={1000}
-                      className="w-10 h-10 rounded-full object-cover mx-auto"
-                    />
-                  ) : (
-                    ""
-                  )}
-                </TableCell>
                 <TableCell className="font-semibold text-center overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px]">
                   {item.name}
                 </TableCell>
@@ -295,12 +295,25 @@ export function TableView({
                 <TableCell className="text-center">{item.subtype}</TableCell>
                 <TableCell className="text-center">
                   <Badge
+                    onMouseEnter={() => {
+                      if (
+                        item.state === "asignada" ||
+                        item.state === "finalizada"
+                      ) {
+                        setSelectedOperario(item); // Establece el operario seleccionado
+                        setIsOperarioDialogOpen(true); // Abre el diálogo
+                      }
+                    }}
+                    // onMouseLeave={() => {
+                    //   setIsOperarioDialogOpen(false); // Cierra el diálogo
+                    //   setSelectedOperario(null); // Limpia el operario seleccionado
+                    // }}
                     className={`border border-solid ${
                       item.state === "pendiente"
                         ? "border-orange-600 "
                         : item.state === "asignada"
-                        ? "border-blue-600 "
-                        : "border-green-600 "
+                        ? "border-blue-600 cursor-pointer "
+                        : "border-green-600 cursor-pointer"
                     }`}
                     variant={"outline"}
                   >
@@ -314,6 +327,52 @@ export function TableView({
                     {item.state.charAt(0).toUpperCase() + item.state.slice(1)}
                   </Badge>
                 </TableCell>
+                <Dialog
+                  open={isOperarioDialogOpen}
+                  onOpenChange={(open) => {
+                    if (!open) {
+                      setIsOperarioDialogOpen(false);
+                      setSelectedOperario(null); // Limpia el operario seleccionado al cerrar
+                    }
+                  }}
+                >
+                  <DialogContent className="space-y-2">
+                    <DialogHeader>
+                      <DialogTitle>Información del Operario</DialogTitle>
+                      <DialogDescription>
+                        Datos del operario asignado a esta solicitud.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {selectedOperario?.operario?.image?.url ? (
+                      <Image
+                        src={selectedOperario.operario.image.url}
+                        alt="Operario"
+                        width={1000}
+                        height={1000}
+                        className="object-cover w-32 h-32 rounded-full m-auto"
+                      />
+                    ) : (
+                      <p>No hay imagen disponible</p>
+                    )}
+                    <p>
+                      <strong>Nombre:</strong>{" "}
+                      {selectedOperario?.operario?.name || "No disponible"}
+                    </p>
+                    <p>
+                      <strong>Email:</strong>{" "}
+                      {selectedOperario?.operario?.email || "No disponible"}
+                    </p>
+                    <p>
+                      <strong>Unidad:</strong>{" "}
+                      {selectedOperario?.operario?.unit || "No disponible"}
+                    </p>
+                    <p>
+                      <strong>Rol:</strong>{" "}
+                      {selectedOperario?.operario?.role || "No disponible"}
+                    </p>
+                  </DialogContent>
+                </Dialog>
+
                 <TableCell className="text-center">
                   <Popover modal={true}>
                     <PopoverTrigger>

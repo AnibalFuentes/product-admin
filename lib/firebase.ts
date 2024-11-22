@@ -71,6 +71,7 @@ export const sendResetEmail = async (email: string) => {
 };
 export const signOutAccount = () => {
   localStorage.removeItem("user");
+  localStorage.removeItem("entidades");
 
   localStorage.clear();
   // localStorage.removeItem('users');

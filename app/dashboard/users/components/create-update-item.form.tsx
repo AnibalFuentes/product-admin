@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { User as FirebaseUser, signOut } from "firebase/auth";
+import { v4 as uuidv4 } from "uuid"; // Importar la función para generar UUIDs
 import {
   Dialog,
   DialogContent,
@@ -49,11 +50,13 @@ import {
   getDoc,
   setDoc,
   Timestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { getAuth, sendEmailVerification } from "firebase/auth";
 import { DropdownMenuDemo } from "./dropdownVerification";
 import { Switch } from "@/components/ui/switch";
 import { DEFAULT_USER_IMAGE_URL } from "@/constants/constants";
+import * as XLSX from "xlsx";
 
 interface CreateUpdateItemProps {
   children: React.ReactNode;
@@ -66,7 +69,7 @@ export function CreateUpdateItem({
   itemToUpdate,
   getItems,
 }: CreateUpdateItemProps) {
-  const user = useUser();
+  const { user,eps } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [image, setImage] = useState("");
@@ -271,6 +274,71 @@ export function CreateUpdateItem({
       setIsLoading(false);
     }
   };
+
+  const createEntidadesFromExcel = async (file: File) => {
+    const path = `usuarios/users`;
+    setIsLoading(true);
+
+    try {
+      // Leer el archivo Excel
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0]; // Usar la primera hoja
+      const sheet = workbook.Sheets[sheetName];
+
+      // Convertir los datos de la hoja a JSON
+      const registros: { nombre: string; tipo: string }[] =
+        XLSX.utils.sheet_to_json(sheet);
+
+      // Validar el contenido del archivo
+      if (!registros || registros.length === 0) {
+        throw new Error(
+          "El archivo Excel está vacío o no tiene datos válidos."
+        );
+      }
+
+      // Agregar un UUID a cada registro
+      const registrosConUUID = registros.map((registro) => ({
+        id: uuidv4(), // Generar un UUID único para cada registro
+        ...registro, // Copiar los campos originales del registro
+      }));
+
+      // Referencia al documento único en Firestore
+      const docRef = doc(db, path);
+
+      // Verificar si el documento ya existe en Firestore
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        // Si el documento existe, usa updateDoc para agregar los registros al array `eps`
+        await updateDocument(path, {
+          eps: arrayUnion(...registrosConUUID), // Usa spread para agregar múltiples elementos
+        });
+      } else {
+        // Si el documento no existe, usa setDoc para crearlo con los registros iniciales
+        await setDoc(docRef, {
+          eps: registrosConUUID, // Asigna el array completo
+        });
+      }
+
+      toast.success(
+        `EPS creados exitosamente: ${registrosConUUID.length} registros`,
+        {
+          duration: 2500,
+        }
+      );
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al procesar el archivo Excel",
+        { duration: 2500 }
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog
       open={isDialogOpen}
@@ -301,6 +369,16 @@ export function CreateUpdateItem({
             </div>
           </DialogTitle>
           <DialogDescription>
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  createEntidadesFromExcel(file);
+                }
+              }}
+            />
             Gestiona tu usuario con la siguiente información.
           </DialogDescription>
           {itemToUpdate && (

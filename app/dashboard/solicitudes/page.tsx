@@ -1,28 +1,24 @@
-import Navbar from '@/components/navbar'
-import { Metadata } from 'next'
-import Items from './components/items'
-import PageTitle from '@/components/PageTitle'
-
+import Navbar from "@/components/navbar";
+import { Metadata } from "next";
+import Items from "./components/items";
+import PageTitle from "@/components/PageTitle";
 
 export const metadata: Metadata = {
-  title: 'Solicitudes - Solicitudes Admin',
-  description: 'Sign in to your account'
-}
+  title: "Solicitudes - Solicitudes Admin",
+  description: "Sign in to your account",
+};
 
-const Users = () => {
+const Solicitudes = () => {
   return (
     <>
-    
-    <PageTitle title='Solicitudes' />
-    <div className=" w-full "> {/* Sin márgenes adicionales */}
+      <PageTitle title="Solicitudes" />
+      <div >
+        {" "}
+       
         <Items />
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Users
-
-
-
-
+export default Solicitudes;

@@ -16,7 +16,7 @@ import { SolicitudesChart } from "@/components/chartPie";
 // };
 
 const Dashboard = () => {
-  const user = useUser();
+  const { user } = useUser();
   const [items, setItems] = useState<Solicitud[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 

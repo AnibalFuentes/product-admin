@@ -33,7 +33,7 @@ interface AssingOpProps {
 }
 
 export function AssingOp({ children, item, getItems }: AssingOpProps) {
-  const user = useUser();
+  const { user } = useUser();
   const [operarios, setOperarios] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 

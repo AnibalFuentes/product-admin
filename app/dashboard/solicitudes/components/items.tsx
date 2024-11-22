@@ -12,12 +12,15 @@ import ListView from "./list-view";
 import { arrayRemove } from "firebase/firestore";
 import { Solicitud } from "@/interfaces/solicitud.interface";
 import { Input } from "@/components/ui/input";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Items = () => {
-  const user = useUser();
+  const { user } = useUser();
   const [items, setItems] = useState<Solicitud[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>(""); // Término de búsqueda
+
+  const isMolbile = useIsMobile();
 
   //=========OBTENER SOLICITUDES DE FIRESTORE
   const getItems = async () => {
@@ -97,35 +100,34 @@ const Items = () => {
   );
 
   return (
-    <div className="w-full">
-      {/* Contenedor del campo de búsqueda y botón Crear */}
-
-      <div className=" top-0  z-10 p-4 flex justify-between items-center  border-gray-200">
-        {/* Campo de búsqueda */}
-        <div className="relative flex items-center w-64">
+    <div className="flex flex-col">
+      <div className="flex justify-between  my-8 items-center">
+        <div className=" flex items-center w-64">
+          {" "}
+          {/* Controla el ancho aquí */}
           <Input
             type="text"
             placeholder="Buscar solicitudes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-8"
           />
           {searchTerm && (
-            <button
+            <Button
               onClick={() => setSearchTerm("")}
-              className="absolute right-2 p-1"
+              variant={"ghost"}
+              className=" hover:bg-transparent"
             >
-              <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
-            </button>
+              <X className="w-4 h-4 text-gray-500 hover:text-gray-70" />
+            </Button>
           )}
         </div>
 
         {/* Botón de creación */}
-        {user?.role === "USUARIO" && (
+        {user?.role === "ADMIN" && (
           <CreateUpdateItem getItems={getItems}>
-            <Button className="px-6" disabled={isLoading}>
-              Crear
-              <CirclePlus className="ml-2 w-[20px]" />
+            <Button className="">
+              {!isMolbile && "Crear"}
+              <CirclePlus className=" w-[20px]" />
             </Button>
           </CreateUpdateItem>
         )}

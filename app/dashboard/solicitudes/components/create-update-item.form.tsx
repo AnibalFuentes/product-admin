@@ -65,7 +65,7 @@ export function CreateUpdateItem({
   itemToUpdate,
   getItems,
 }: CreateUpdateItemProps) {
-  const user = useUser();
+  const { user } = useUser();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -228,7 +228,8 @@ export function CreateUpdateItem({
           <DialogTitle>
             {itemToUpdate && user?.role === "USUARIO"
               ? "Editar Solicitud"
-              : user?.role === "OPERARIO" || user?.role === "ADMIN"
+              : user?.role === "OPERARIO" ||
+                (user?.role === "ADMIN" && itemToUpdate)
               ? "Responder Solicitud"
               : "Crear Solicitud"}
           </DialogTitle>
@@ -254,9 +255,7 @@ export function CreateUpdateItem({
                           {...register("name")}
                           id="name"
                           placeholder="Nombre de la solicitud"
-                          readOnly={
-                            user?.role === "ADMIN" || user?.role === "OPERARIO"
-                          } // Solo lectura
+                          readOnly={user?.role === "OPERARIO"} // Solo lectura
                         />
                         {errors.name && (
                           <p className="form-error">{errors.name.message}</p>
@@ -270,9 +269,7 @@ export function CreateUpdateItem({
                           {...register("description")}
                           id="description"
                           placeholder="Descripción de la solicitud"
-                          readOnly={
-                            user?.role === "ADMIN" || user?.role === "OPERARIO"
-                          } // Solo lectura
+                          readOnly={user?.role === "OPERARIO"} // Solo lectura
                         />
                         {errors.description && (
                           <p className="form-error">
@@ -290,10 +287,7 @@ export function CreateUpdateItem({
                             <Select
                               onValueChange={(value) => field.onChange(value)}
                               value={field.value}
-                              disabled={
-                                user?.role === "ADMIN" ||
-                                user?.role === "OPERARIO"
-                              } // Solo lectura
+                              disabled={user?.role === "OPERARIO"} // Solo lectura
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Seleccione un tipo de solicitud" />
@@ -326,10 +320,7 @@ export function CreateUpdateItem({
                               <Select
                                 onValueChange={(value) => field.onChange(value)}
                                 value={field.value}
-                                disabled={
-                                  user?.role === "ADMIN" ||
-                                  user?.role === "OPERARIO"
-                                } // Solo lectura
+                                disabled={user?.role === "OPERARIO"} // Solo lectura
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Seleccione un subtipo" />
