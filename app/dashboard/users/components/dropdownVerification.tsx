@@ -284,7 +284,7 @@ export function DropdownMenuDemo({
                           {user.phone}
                         </TableCell>
                         <TableCell className="px-4 py-2 text-gray-800">
-                          {user.unit}
+                          {user.unit.nombre}
                         </TableCell>
                         <TableCell className="px-4 py-2 text-gray-800">
                           {user.role}
