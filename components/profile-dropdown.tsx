@@ -154,7 +154,7 @@ export function ProfileDropdown() {
           <div>{user?.name ? capitalizeWords(user.name) : ""}</div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
+        {/* <DropdownMenuGroup>
           <DropdownMenuItem>
             <User className="mr-2 h-4 w-4" />
             <span>Perfil</span>
@@ -168,8 +168,8 @@ export function ProfileDropdown() {
             <LifeBuoy className="mr-2 h-4 w-4" />
             <span>Soporte</span>
           </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+        </DropdownMenuGroup> */}
+        {/* <DropdownMenuSeparator /> */}
         <DropdownMenuItem onClick={() => signOutAccount()}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Cerrar Sesión</span>

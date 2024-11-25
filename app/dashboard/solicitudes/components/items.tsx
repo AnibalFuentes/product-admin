@@ -123,15 +123,14 @@ const Items = () => {
         </div>
 
         {/* Botón de creación */}
-        {user?.role === "ADMINISTRADOR" ||
-          (user?.role === "SOLICITANTE" && (
-            <CreateUpdateItem getItems={getItems}>
-              <Button className="">
-                {!isMolbile && "Crear"}
-                <CirclePlus className=" w-[20px]" />
-              </Button>
-            </CreateUpdateItem>
-          ))}
+        {(user?.role === "ADMINISTRADOR" || user?.role === "SOLICITANTE") && (
+          <CreateUpdateItem getItems={getItems}>
+            <Button className="">
+              {!isMolbile && "Crear"}
+              <CirclePlus className=" w-[20px]" />
+            </Button>
+          </CreateUpdateItem>
+        )}
       </div>
 
       {/* Vista de Tabla y Lista */}

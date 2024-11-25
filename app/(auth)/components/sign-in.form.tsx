@@ -12,10 +12,12 @@ import { getAuth } from "firebase/auth"; // Importación para verificar el estad
 import { useState } from "react";
 import { LoaderCircle, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
+import { useUser } from "@/hooks/use-user";
 
 const SignInForm = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false); // Estado para mostrar u ocultar la contraseña
+  const { user } = useUser();
 
   const formSchema = z.object({
     email: z
@@ -38,10 +40,10 @@ const SignInForm = () => {
   const { register, handleSubmit, formState } = form;
   const { errors } = formState;
 
-  const onSubmit = async (user: z.infer<typeof formSchema>) => {
+  const onSubmit = async (us: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      await SignIn(user);
+      await SignIn(us);
 
       const auth = getAuth();
       const currentUser = auth.currentUser;
@@ -51,7 +53,14 @@ const SignInForm = () => {
           "Por favor verifica tu correo electrónico antes de iniciar sesión.",
           { duration: 3000 }
         );
-        
+
+        signOutAccount();
+
+        return;
+      }
+      if (user && !user.state) {
+        toast.error("Tu cuenta está inactiva.", { duration: 3000 });
+
         signOutAccount();
 
         return;

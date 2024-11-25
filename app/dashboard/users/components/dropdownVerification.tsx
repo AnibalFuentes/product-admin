@@ -212,7 +212,7 @@ export function DropdownMenuDemo({
         <DropdownMenuLabel>Options</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {itemToUpdate && (
+          
             <DropdownMenuItem
               onClick={onResendVerification}
               className="cursor-pointer"
@@ -220,8 +220,8 @@ export function DropdownMenuDemo({
               <Mail />
               <span>Reenviar verificación</span>
             </DropdownMenuItem>
-          )}
-          {!itemToUpdate && (
+          
+          {/* {!itemToUpdate && (
             <DropdownMenuItem
               onClick={() => setIsDialogOpen(true)}
               className="cursor-pointer"
@@ -229,7 +229,7 @@ export function DropdownMenuDemo({
               <Users />
               <span>Crear usuarios desde Excel</span>
             </DropdownMenuItem>
-          )}
+          )} */}
         </DropdownMenuGroup>
       </DropdownMenuContent>
 

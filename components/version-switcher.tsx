@@ -14,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { redirect } from "next/navigation";
 
 export function VersionSwitcher({}: // onLogout, // Añade una función de cierre de sesión como prop
 {
@@ -22,34 +23,36 @@ export function VersionSwitcher({}: // onLogout, // Añade una función de cierr
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <SidebarMenuButton
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          onClick={() => {
+            redirect('/dashboard')
+          }}
+        >
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <GalleryVerticalEnd className="size-4" />
+          </div>
+          <div className="flex flex-col gap-0.5 leading-none">
+            <span className="font-semibold">Solicitudes</span>
+          </div>
+          
+          {/* <ChevronsUpDown className="ml-auto" /> */}
+        </SidebarMenuButton>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <GalleryVerticalEnd className="size-4" />
-              </div>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold">
-                  Solicitudes
-                </span>
-              </div>
-              <ChevronsUpDown className="ml-auto" />
-            </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width]"
             align="start"
           >
-            {/* Botón de Cerrar Sesión */}
-            <DropdownMenuItem /* onSelect={onLogout} */>
+            
+            <DropdownMenuItem >
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </SidebarMenuItem>
     </SidebarMenu>
   );

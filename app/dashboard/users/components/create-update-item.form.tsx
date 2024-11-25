@@ -122,7 +122,7 @@ export function CreateUpdateItem({
       } as ItemImage,
       name: "",
       email: "",
-      password: "",
+      password: "Abcabc123",
       phone: "",
       state: true,
     },
@@ -387,11 +387,13 @@ export function CreateUpdateItem({
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center">
-              <DropdownMenuDemo
-                onResendVerification={handleSendVerificationEmail}
-                getItems={getItems}
-                itemToUpdate={itemToUpdate}
-              />{" "}
+              {itemToUpdate && (
+                <DropdownMenuDemo
+                  onResendVerification={handleSendVerificationEmail}
+                  getItems={getItems}
+                  itemToUpdate={itemToUpdate}
+                />
+              )}
               {itemToUpdate ? "Editar Usuario" : "Crear Usuario"}
             </div>
           </DialogTitle>
@@ -488,6 +490,7 @@ export function CreateUpdateItem({
                 control={control}
                 render={({ field }) => (
                   <Select
+                    disabled={!edit && Boolean(itemToUpdate)}
                     onValueChange={(value) => field.onChange(value)}
                     value={field.value}
                   >
@@ -524,7 +527,7 @@ export function CreateUpdateItem({
                       field.onChange(value); // Actualiza solo el id de la unidad
                     }}
                     value={field.value} // Establece el valor inicial del Select
-                    disabled={!selectedType && !itemToUpdate}
+                    disabled={!edit || (!selectedType && !itemToUpdate)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue
@@ -581,7 +584,7 @@ export function CreateUpdateItem({
               <p className="form-error">{errors.role?.message}</p>
             </div>
             {/* Contraseña */}
-            {!itemToUpdate && (
+            {/* {!itemToUpdate && (
               <div className="mb-3">
                 <Label htmlFor="password">Contraseña</Label>
                 <Input
@@ -593,7 +596,7 @@ export function CreateUpdateItem({
                 />
                 <p className="form-error">{errors.password?.message}</p>
               </div>
-            )}
+            )} */}
             {/* Estado */}
             {itemToUpdate && (
               <div className="mb-3">

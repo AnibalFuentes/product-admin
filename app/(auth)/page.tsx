@@ -16,10 +16,10 @@ const AuthPage = () => {
           <div className="bg-auth absolute inset-0"></div>
           <Logo />
           <div className="relative z-20 mt-auto">
-            <p className="text-lg">
+            {/* <p className="text-lg">
               {"este administrador hace tu vida mas facil"}
-            </p>
-            <footer className="text-sm"> DevAni</footer>
+            </p> */}
+            <footer className="text-sm"> Asistencia Tecnica</footer>
           </div>
         </div>
 
