@@ -122,7 +122,7 @@ export function CreateUpdateItem({
       } as ItemImage,
       name: "",
       email: "",
-      password: "Abcabc123",
+      password: "Abcabc123!",
       phone: "",
       state: true,
     },
