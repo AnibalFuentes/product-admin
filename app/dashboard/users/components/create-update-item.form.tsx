@@ -118,7 +118,7 @@ export function CreateUpdateItem({
       uid: "",
       image: {
         path: "defaultImages/usuario.jpeg",
-        url: "https://firebasestorage.googleapis.com/v0/b/happy-cream.appspot.com/o/defaultImages%2Fusuario.jpeg?alt=media&token=b0e2e7f4-dc3e-49dd-9b4e-24c74c9d2d57",
+        url: DEFAULT_USER_IMAGE_URL,
       } as ItemImage,
       name: "",
       email: "",
@@ -527,7 +527,7 @@ export function CreateUpdateItem({
                       field.onChange(value); // Actualiza solo el id de la unidad
                     }}
                     value={field.value} // Establece el valor inicial del Select
-                    disabled={!edit || (!selectedType && !itemToUpdate)}
+                    disabled={!edit && Boolean(itemToUpdate)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue
