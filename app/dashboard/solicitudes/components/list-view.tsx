@@ -68,17 +68,38 @@ const ListView = ({
     "all" | "pendiente" | "asignada" | "finalizada"
   >("all");
   const [typeFilter, setTypeFilter] = useState<
-    "all" | "sivigila" | "protocolo"
+    "all" | "sivigila"
+    // "all" | "sivigila" | "protocolo"
   >("all");
   const [subtypeFilter, setSubtypeFilter] = useState<
-    "all" | "sivigila 1" | "sivigila 2" | "Protocolo 1" | "Protocolo 2"
+    | "all"
+    | "Instalación"
+    | "Actualización"
+    | "Capacitación"
+    | "Fortalecimiento"
+    | "Ajustes"
+    | "BAI"
   >("all");
 
   // Opciones de subtipo basadas en el tipo seleccionado
   const subtypeOptions = {
-    all: ["sivigila 1", "sivigila 2", "Protocolo 1", "Protocolo 2"],
-    sivigila: ["sivigila 1", "sivigila 2"],
-    protocolo: ["Protocolo 1", "Protocolo 2"],
+    all: [
+      "Instalación",
+      "Actualización",
+      "Capacitación",
+      "Fortalecimiento",
+      "Ajustes",
+      "BAI",
+    ],
+    sivigila: [
+      "Instalación",
+      "Actualización",
+      "Capacitación",
+      "Fortalecimiento",
+      "Ajustes",
+      "BAI",
+    ],
+    // protocolo: ["Protocolo 1", "Protocolo 2"],
   };
   const currentSubtypeOptions =
     typeFilter === "all" ? subtypeOptions.all : subtypeOptions[typeFilter];
@@ -156,7 +177,8 @@ const ListView = ({
           <Select
             value={typeFilter !== "all" ? typeFilter : ""}
             onValueChange={(value) => {
-              setTypeFilter(value as "all" | "sivigila" | "protocolo");
+              setTypeFilter(value as "all" | "sivigila");
+              // setTypeFilter(value as "all" | "sivigila" | "protocolo");
               setSubtypeFilter("all");
             }}
           >
@@ -168,7 +190,7 @@ const ListView = ({
                 <SelectLabel>Tipo</SelectLabel>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="sivigila">Sivigila</SelectItem>
-                <SelectItem value="protocolo">Protocolo</SelectItem>
+                {/* <SelectItem value="protocolo">Protocolo</SelectItem> */}
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -181,10 +203,12 @@ const ListView = ({
               setSubtypeFilter(
                 value as
                   | "all"
-                  | "sivigila 1"
-                  | "sivigila 2"
-                  | "Protocolo 1"
-                  | "Protocolo 2"
+                  | "Instalación"
+                  | "Actualización"
+                  | "Capacitación"
+                  | "Fortalecimiento"
+                  | "Ajustes"
+                  | "BAI"
               )
             }
           >
@@ -395,19 +419,21 @@ const ListView = ({
                       </Button>
                     </CreateUpdateItem>
                   </div>
-                  {user?.role === "ADMINISTRADOR" &&<div>
-                    <ConfirmDeletion
-                      deleteUserInDB={deleteUserInDB}
-                      item={item}
-                    >
-                      <Button variant="ghost">
-                        <span className="flex items-center">
-                          <Trash2 className="mr-2 w-4 h-4 text-red-600" />
-                          Eliminar
-                        </span>
-                      </Button>
-                    </ConfirmDeletion>
-                  </div>}
+                  {user?.role === "ADMINISTRADOR" && (
+                    <div>
+                      <ConfirmDeletion
+                        deleteUserInDB={deleteUserInDB}
+                        item={item}
+                      >
+                        <Button variant="ghost">
+                          <span className="flex items-center">
+                            <Trash2 className="mr-2 w-4 h-4 text-red-600" />
+                            Eliminar
+                          </span>
+                        </Button>
+                      </ConfirmDeletion>
+                    </div>
+                  )}
                   {user?.role === "ADMINISTRADOR" && (
                     <div>
                       <AssingOp item={item} getItems={getItems}>
