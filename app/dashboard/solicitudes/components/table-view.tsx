@@ -82,17 +82,32 @@ export function TableView({
   const typeOptions = [
     { value: "all", label: "Todos" },
     { value: "sivigila", label: "Sivigila" },
-    { value: "protocolo", label: "Protocolo" },
+    // { value: "protocolo", label: "Protocolo" },
   ];
-  type TypeFilter = "all" | "sivigila" | "protocolo";
-  type SubtypeSivigila = "sivigila 1" | "sivigila 2";
-  type SubtypeProtocolo = "Protocolo 1" | "Protocolo 2";
-  type Subtype = SubtypeSivigila | SubtypeProtocolo | "all";
+  type TypeFilter = "all" | "sivigila" ;
+  type SubtypeSivigila = 'Instalación'|
+      'Actualización'|
+      'Capacitación'|
+      'Fortalecimiento'|
+      'Ajustes'|
+      'BAI';
+  // type SubtypeProtocolo = "Protocolo 1" | "Protocolo 2";
+  type Subtype = SubtypeSivigila  | "all";
 
   const subtypeOptions: Record<TypeFilter, Subtype[]> = {
-    all: ["sivigila 1", "sivigila 2", "Protocolo 1", "Protocolo 2"],
-    sivigila: ["sivigila 1", "sivigila 2"],
-    protocolo: ["Protocolo 1", "Protocolo 2"],
+    all: ['Instalación',
+      'Actualización',
+      'Capacitación',
+      'Fortalecimiento',
+      'Ajustes',
+      'BAI'],
+    sivigila: ['Instalación',
+      'Actualización',
+      'Capacitación',
+      'Fortalecimiento',
+      'Ajustes',
+      'BAI'],
+    // protocolo: ["Protocolo 1", "Protocolo 2"],
   };
 
   const currentSubtypeOptions =

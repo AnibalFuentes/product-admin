@@ -35,7 +35,7 @@ export default function RootLayout({
   if (user && isInAuthRoute) return redirect("/dashboard");
 
   return (
-    <html lang="en">
+    <html lang="es" suppressHydrationWarning>
       <body
       // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

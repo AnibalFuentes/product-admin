@@ -35,7 +35,7 @@ import {
   Solicitud,
   TipoSolicitud,
   SubtipoSivigila,
-  SubtipoProtocolo,
+  
 } from "@/interfaces/solicitud.interface";
 import { db, updateDocument } from "@/lib/firebase";
 import {
@@ -240,7 +240,7 @@ export function CreateUpdateItem({
 
         <Card>
           <CardContent>
-            <Accordion type="single" collapsible>
+            <Accordion type="single" collapsible defaultValue="item-1">
               <AccordionItem value="item-1">
                 <AccordionTrigger className="font-semibold">
                   <Badge>Solicitud</Badge>
@@ -297,9 +297,9 @@ export function CreateUpdateItem({
                                   <SelectItem value={TipoSolicitud.SIVIGILA}>
                                     SIVIGILA
                                   </SelectItem>
-                                  <SelectItem value={TipoSolicitud.PROTOCOLO}>
+                                  {/* <SelectItem value={TipoSolicitud.PROTOCOLO}>
                                     PROTOCOLO
-                                  </SelectItem>
+                                  </SelectItem> */}
                                 </SelectGroup>
                               </SelectContent>
                             </Select>
@@ -333,16 +333,38 @@ export function CreateUpdateItem({
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_1}
                                         >
-                                          Sivigila 1
+                                         {SubtipoSivigila.SUBTIPO_1}
                                         </SelectItem>
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_2}
+                                          >
+                                          {SubtipoSivigila.SUBTIPO_2}
+                                          
+                                        </SelectItem>
+                                        <SelectItem
+                                          value={SubtipoSivigila.SUBTIPO_3}
                                         >
-                                          Sivigila 2
+                                         {SubtipoSivigila.SUBTIPO_3}
+                                        </SelectItem>
+                                        <SelectItem
+                                          value={SubtipoSivigila.SUBTIPO_4}
+                                        >
+                                          {SubtipoSivigila.SUBTIPO_4}
+                                          
+                                        </SelectItem>
+                                        <SelectItem
+                                          value={SubtipoSivigila.SUBTIPO_5}
+                                        >
+                                         {SubtipoSivigila.SUBTIPO_5}
+                                        </SelectItem>
+                                        <SelectItem
+                                          value={SubtipoSivigila.SUBTIPO_6}
+                                        >
+                                          {SubtipoSivigila.SUBTIPO_6}
                                         </SelectItem>
                                       </>
                                     )}
-                                    {selectedType ===
+                                    {/* {selectedType ===
                                       TipoSolicitud.PROTOCOLO && (
                                       <>
                                         <SelectItem
@@ -356,7 +378,7 @@ export function CreateUpdateItem({
                                           Protocolo 2
                                         </SelectItem>
                                       </>
-                                    )}
+                                    )} */}
                                   </SelectGroup>
                                 </SelectContent>
                               </Select>
@@ -445,7 +467,9 @@ export function CreateUpdateItem({
                             {itemToUpdate && user?.role === "SOLICITANTE"
                               ? "Actualizar"
                               : user?.role === "REFERENTE" ||
-                                user?.role === "ADMINISTRADOR"
+                                (user?.role === "ADMINISTRADOR" &&
+                                  itemToUpdate &&
+                                  user.uid !== itemToUpdate.user.uid)
                               ? "Responder"
                               : "Crear"}
                           </Button>

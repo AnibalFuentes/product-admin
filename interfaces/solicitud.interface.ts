@@ -17,22 +17,28 @@ export interface Solicitud {
 }
 export enum TipoSolicitud {
   SIVIGILA = "sivigila",
-  PROTOCOLO = "protocolo",
+  // PROTOCOLO = "protocolo",
 }
 
 export enum SubtipoSivigila {
   // Define los subtipos específicos de Sivigila aquí
-  SUBTIPO_1 = "sivigila 1",
-  SUBTIPO_2 = "sivigila 2",
+  SUBTIPO_1 = "Instalación",
+  SUBTIPO_2 = "Actualización",
+  SUBTIPO_3 = "Capacitación",
+  SUBTIPO_4 = "Fortalecimiento",
+  SUBTIPO_5 = "Ajustes",
+  SUBTIPO_6 = "BAI",
+ 
 }
 
-export enum SubtipoProtocolo {
-  // Define los subtipos específicos de Protocolo aquí
-  SUBTIPO_A = "Protocolo 1",
-  SUBTIPO_B = "Protocolo 2",
-}
+// export enum SubtipoProtocolo {
+//   // Define los subtipos específicos de Protocolo aquí
+//   SUBTIPO_A = "Protocolo 1",
+//   SUBTIPO_B = "Protocolo 2",
+// }
 
-type Subtipo = SubtipoSivigila | SubtipoProtocolo;
+// type Subtipo = SubtipoSivigila | SubtipoProtocolo;
+type Subtipo = SubtipoSivigila ;
 
 export enum EstadoSolicitud {
   PENDIENTE = "pendiente",
