@@ -35,7 +35,6 @@ import {
   Solicitud,
   TipoSolicitud,
   SubtipoSivigila,
-  
 } from "@/interfaces/solicitud.interface";
 import { db, updateDocument } from "@/lib/firebase";
 import {
@@ -287,7 +286,7 @@ export function CreateUpdateItem({
                             <Select
                               onValueChange={(value) => field.onChange(value)}
                               value={field.value}
-                              disabled={user?.role === "OPERARIO"} // Solo lectura
+                              disabled={user?.role === "REFERENTE"} // Solo lectura
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Seleccione un tipo de solicitud" />
@@ -333,29 +332,27 @@ export function CreateUpdateItem({
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_1}
                                         >
-                                         {SubtipoSivigila.SUBTIPO_1}
+                                          {SubtipoSivigila.SUBTIPO_1}
                                         </SelectItem>
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_2}
-                                          >
+                                        >
                                           {SubtipoSivigila.SUBTIPO_2}
-                                          
                                         </SelectItem>
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_3}
                                         >
-                                         {SubtipoSivigila.SUBTIPO_3}
+                                          {SubtipoSivigila.SUBTIPO_3}
                                         </SelectItem>
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_4}
                                         >
                                           {SubtipoSivigila.SUBTIPO_4}
-                                          
                                         </SelectItem>
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_5}
                                         >
-                                         {SubtipoSivigila.SUBTIPO_5}
+                                          {SubtipoSivigila.SUBTIPO_5}
                                         </SelectItem>
                                         <SelectItem
                                           value={SubtipoSivigila.SUBTIPO_6}
@@ -466,7 +463,7 @@ export function CreateUpdateItem({
                             )}
                             {itemToUpdate && user?.role === "SOLICITANTE"
                               ? "Actualizar"
-                              : user?.role === "REFERENTE" ||
+                              : (user?.role === "REFERENTE" && itemToUpdate) ||
                                 (user?.role === "ADMINISTRADOR" &&
                                   itemToUpdate &&
                                   user.uid !== itemToUpdate.user.uid)
