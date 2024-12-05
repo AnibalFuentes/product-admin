@@ -100,7 +100,7 @@ export function ProfileDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="mx-4">
-          <span className="mr-2">{user ? user.name : "Cuenta"}</span>
+          <span className="mr-2">{user?.name ? capitalizeWords(user.name) : "Cuenta"}</span>
 
           {image ? (
             <Image
